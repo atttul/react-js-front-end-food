@@ -1,19 +1,34 @@
-import React, {useState} from 'react'
-import {useNavigate} from 'react-router-dom'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export default function Carousel() {
     return (
         <div>
-            <div id="carouselExampleFade" className="carousel slide carousel-fade" >
+            <div id="carouselExampleFade" className=" m-3 carousel slide carousel-fade" >
                 <div className="carousel-inner">
                     <div className="carousel-item active">
-                        <img src="https://media.istockphoto.com/photos/king-fish-biryani-with-raita-served-in-a-golden-dish-isolated-on-dark-picture-id1409942571?b=1&k=20&m=1409942571&s=170667a&w=0&h=ozlMJf5hsDmS2sSdEdBWnoSZOEITef4qGMeWeq2lyTc=" className="d-block w-100" alt="..." />
+                        <img src="https://imgs.search.brave.com/IHH2Fr239MYiqFdo73NgjxOtM_X4lB4tupaRRQ7kQGY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS1wc2Qv/aG90ZWwtZm9vZC1i/YW5uZXItZGVzaWdu/LXRlbXBsYXRlXzk4/NzcwMS0xNzE3Lmpw/Zz9zZW10PWFpc19o/eWJyaWQmdz03NDA"
+                            alt="food"
+                            className="w-100"
+                            style={{ height: "400px", objectFit: "cover", borderRadius: "8px" }} />
                     </div>
                     <div className="carousel-item">
-                        <img src="https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8Y2hpY2tlbiUyMHRpa2thfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60" className="d-block w-100" alt="..." />
+                        <img src="https://imgs.search.brave.com/KXecyDrI1GoxpCRjgulgxCVCJPfPypLyLprqtXfYzT8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1wc2QvZm9v/ZC1tZW51LXJlc3Rh/dXJhbnQtd2ViLWJh/bm5lci10ZW1wbGF0/ZV8xMDYxNzYtODI1/LmpwZz9zZW10PWFp/c19oeWJyaWQmdz03/NDA"
+                            alt="food"
+                            className="w-100"
+                            style={{ height: "400px", objectFit: "cover", borderRadius: "8px" }} />
                     </div>
                     <div className="carousel-item">
-                        <img src="https://media.istockphoto.com/photos/paneer-tikka-at-skewers-in-black-bowl-at-dark-slate-background-paneer-picture-id1186759790?k=20&m=1186759790&s=612x612&w=0&h=e9MlX_7cZtq9_-ORGLPNU27VNP6SvDz7s-iwTxrf7wU=" className="d-block w-100" alt="..." />
+                        <img src="https://imgs.search.brave.com/J6SVtt5_KQfyaGBiV1Ckqen9h23HFGMJad2VRdRQvgk/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzA1LzY5/LzBiLzA1NjkwYjkz/MTgyMmVlZGQ4ZjY3/NDE4ZGFkMWU2Y2E2/LmpwZw"
+                            alt="food"
+                            className="w-100"
+                            style={{ height: "400px", objectFit: "cover", borderRadius: "8px" }} />
+                    </div>
+                    <div className="carousel-item">
+                        <img src="https://imgs.search.brave.com/3o-hofvSAT7CHXcA9bwCTXNbMduXXUpSFsTNO6Cce-8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1wc2QvcmVh/bGlzdGljLWZvb2Qt/ZmVzdGl2YWwtaW5z/dGFncmFtLXBvc3Rz/XzIzLTIxNDk3NTM3/NzguanBnP3NlbXQ9/YWlzX2h5YnJpZCZ3/PTc0MA"
+                            alt="food"
+                            className="w-100"
+                            style={{ height: "400px", objectFit: "cover", borderRadius: "8px" }} />
                     </div>
                 </div>
                 <button className="carousel-control-prev" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="prev">
