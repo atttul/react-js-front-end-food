@@ -10,13 +10,13 @@ export default function Home() {
     let [foodItem, setFoodItem] = useState([]);
 
     const loadData = async () => {
-        let foodItems = await fetch('http://localhost:5000/api/food/data', {
+        let foodItems = await fetch(`${process.env.REACT_APP_BASE_URL}/food/data`, {
             method: "GET",
             headers: {
                 'Content-Type': 'application/json'
             }
         })
-        let foodCategories = await fetch('http://localhost:5000/api/food/categories', {
+        let foodCategories = await fetch(`${process.env.REACT_APP_BASE_URL}/food/categories`, {
             method: "GET",
             headers: {
                 'Content-Type': 'application/json'
@@ -32,18 +32,17 @@ export default function Home() {
     useEffect(() => {
         loadData();
     }, []);
-
-
+    
     return (
         <div>
             <div><Navbar /></div>
-            <div ><Carousel /></div>
+            <div><Carousel /></div>
             <div className="container">
                 {
                 foodCat.length !== 0 ? (
                     foodCat.map((data) => (
                         <div key={data._id}>
-                            <h5 >{data.CategoryName}</h5>
+                            <button className='rounded bg-primary m-3'>{data.CategoryName}</button>
                             <hr />
                             <div className="row">
                                 {foodItem.length !== 0

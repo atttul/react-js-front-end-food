@@ -1,36 +1,57 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 
-
 export default function Login() {
     const [credentials, setCredentials] = useState({ email: "", password: "" });
+    const navigate = useNavigate();
 
-    let navigate = useNavigate();
     const handleSubmit = async (event) => {
-        event.preventDefault()
-        const response = await fetch('http://localhost:5000/api/login/user', {
+        event.preventDefault(); // prevent default form submit
+
+        // Optional: Fetch the auth token (user key) first
+        const userKeyResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/fetch/user  `, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODU2M2U3NmYyZTljMTk4NjIzZjVhZjkiLCJpYXQiOjE3NTA0ODI1NTB9.D3piMaGxxrhCmY2pogTc-FTAhOju4k-4vmtTHqHsNHE'
             },
-            body: JSON.stringify({ email: credentials.email, password: credentials.password })
-        })
-        const json = await response.json();
+            body: JSON.stringify(credentials)
+        });
 
-        if (!json.success) {
-            alert(json.message)
-        }
-        if(json.success){
-            localStorage.setItem("authToken", json.data.access_token)
-            navigate('/')
-        }
-    }
+        const userKey = await userKeyResponse.json();
 
-    const onChange = async (event) => {
-        setCredentials({ ...credentials, [event.target.name]: event.target.value })
-    }
+        if (!userKey.success) {
+            alert(userKey.message || "Invalid credentials (auth token fetch)");
+            return;
+        }
+
+        localStorage.setItem("authToken", userKey.data);
+
+        // Then use that token to login
+        const loginResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/login/user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userKey.data}`
+            },
+            body: JSON.stringify(credentials)
+        });
+
+        const loginData = await loginResponse.json();
+        localStorage.setItem("loginData", loginData.data.email);
+        console.log("Login User Data=", loginData.data);
+
+        if (!loginData.success) {
+            alert(loginData.message || "Login failed");
+            return;
+        }
+
+        navigate('/');
+    };
+
+    const onChange = (event) => {
+        setCredentials({ ...credentials, [event.target.name]: event.target.value });
+    };
 
     return (
         <div>
@@ -38,15 +59,31 @@ export default function Login() {
             <form className='container' onSubmit={handleSubmit}>
                 <div className="mb-3">
                     <label htmlFor="email" className="form-label">Email Address</label>
-                    <input type="email" className="form-control" id="exampleInputEmail1" name='email' value={credentials.email} onChange={onChange} />
+                    <input
+                        type="email"
+                        className="form-control"
+                        id="email"
+                        name='email'
+                        value={credentials.email}
+                        onChange={onChange}
+                        required
+                    />
                 </div>
                 <div className="mb-3">
                     <label htmlFor="password" className="form-label">Password</label>
-                    <input type="password" className="form-control" id="exampleInputPassword1" name='password' value={credentials.password} onChange={onChange} />
+                    <input
+                        type="password"
+                        className="form-control"
+                        id="password"
+                        name='password'
+                        value={credentials.password}
+                        onChange={onChange}
+                        required
+                    />
                 </div>
                 <button type="submit" className="m-3 btn btn-success">Submit</button>
-                <Link to='/signup' className='m-3 btn btn-danger'>Singup User</Link>
+                <Link to='/signup' className='m-3 btn btn-danger'>Signup User</Link>
             </form>
         </div>
-    )
+    );
 }

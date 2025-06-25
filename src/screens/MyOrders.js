@@ -5,11 +5,11 @@ export default function MyOrders() {
     const [getAllOrders, setGetAllOrders] = useState([]);
 
     const handleGetAllOrders = async () => {
-        let allOrders = await fetch('http://localhost:5000/api/order/fetch', {
+        let allOrders = await fetch(`${process.env.REACT_APP_BASE_URL}/order/fetch`, {
             method: 'GET',
             headers: {
-                // "authorization": `bearer ${localStorage.getItem("authToken")}`,
-                "authorization": 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODU2M2U3NmYyZTljMTk4NjIzZjVhZjkiLCJpYXQiOjE3NTA0ODI1NTB9.D3piMaGxxrhCmY2pogTc-FTAhOju4k-4vmtTHqHsNHE',
+                "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                // "authorization": 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODU2M2U3NmYyZTljMTk4NjIzZjVhZjkiLCJpYXQiOjE3NTA0ODI1NTB9.D3piMaGxxrhCmY2pogTc-FTAhOju4k-4vmtTHqHsNHE',
                 'Content-Type': 'application/json',
             },
         })
