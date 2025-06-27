@@ -20,6 +20,6 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          cd /home/ubuntu/react-js-front-end
+          cd /home/ubuntu/react-js-front-end-food
           chmod +x deploy.sh
           ./deploy.sh
