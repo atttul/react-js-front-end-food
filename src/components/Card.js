@@ -10,11 +10,24 @@ export default function Card(props) {
     const [successMessage, setSuccessMessage] = useState('');
 
     const handleAddCart = async () => {
+        if (localStorage.getItem("authToken") === null) {
+            setSuccessMessage('Please login to add items to the cart!');
+            setTimeout(() => {
+                setSuccessMessage('');
+            }, 5000);
+            {
+                successMessage && (
+                    <div style={{ marginTop: '10px' }}>
+                        {successMessage}
+                    </div>
+                )
+            }
+            return;
+        }
         let addedCartItem = await fetch(`${process.env.REACT_APP_BASE_URL}/add/cart/item`, {
             method: 'POST',
             headers: {
                 "authorization": `Bearer ${localStorage.getItem("authToken")}`,
-                // "authorization": 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODU2M2U3NmYyZTljMTk4NjIzZjVhZjkiLCJpYXQiOjE3NTA0ODI1NTB9.D3piMaGxxrhCmY2pogTc-FTAhOju4k-4vmtTHqHsNHE',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ name: props.foodItem.name, qty: qty, size: size })
@@ -24,9 +37,7 @@ export default function Card(props) {
         if (!addedCartItem.success) {
             alert(addedCartItem.message)
         }
-        // if (addedCartItem.success) {
-        //     alert(addedCartItem.message)
-        // }
+
         // ✅ Set success message
         setSuccessMessage('Item added to cart successfully!');
 
@@ -34,15 +45,6 @@ export default function Card(props) {
         setTimeout(() => {
             setSuccessMessage('');
         }, 3000);
-
-        // await dispatch({
-        //     type: 'ADD',
-        //     id: props.foodItem._id,
-        //     name: props.foodItem.name,
-        //     price: finalPrice,
-        //     qty: qty,
-        //     size: size
-        // })
     }
 
     let finalPrice = qty * +props.options[size]
@@ -89,7 +91,7 @@ export default function Card(props) {
                     <div className='d-inline fs-5' >Price = {finalPrice}/-</div>
                     <hr />
                     <div>
-                        <button className='btn btn-light' onClick={handleAddCart}>Add To Cart</button>
+                        <button className='btn btn-danger' onClick={handleAddCart}>Add To Cart</button>
                     </div>
                 </div>
             </div>
