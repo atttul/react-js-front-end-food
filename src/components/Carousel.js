@@ -13,6 +13,12 @@ export default function Carousel() {
                             style={{ height: "400px", objectFit: "cover", borderRadius: "8px" }} />
                     </div>
                     <div className="carousel-item">
+                        <img src="https://os-data-2.xargo-cdn.net/tnqdev/images/food-aerial-ottos-fresh-food-market-custom.jpg"
+                            alt="food"
+                            className="w-100"
+                            style={{ height: "400px", objectFit: "cover", borderRadius: "8px" }} />
+                    </div>
+                    <div className="carousel-item">
                         <img src="https://imgs.search.brave.com/KXecyDrI1GoxpCRjgulgxCVCJPfPypLyLprqtXfYzT8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1wc2QvZm9v/ZC1tZW51LXJlc3Rh/dXJhbnQtd2ViLWJh/bm5lci10ZW1wbGF0/ZV8xMDYxNzYtODI1/LmpwZz9zZW10PWFp/c19oeWJyaWQmdz03/NDA"
                             alt="food"
                             className="w-100"
@@ -32,12 +38,12 @@ export default function Carousel() {
                     </div>
                 </div>
                 <button className="carousel-control-prev" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="prev">
-                    <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span className="visually-hidden">Previous</span>
+                    <span className="carousel-control-prev-icon"></span>
+                    <span className="">Previous</span>
                 </button>
                 <button className="carousel-control-next" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="next">
-                    <span className="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span className="visually-hidden">Next</span>
+                    <span className="">Next</span>
+                    <span className="carousel-control-next-icon"></span>
                 </button>
             </div>
         </div>
