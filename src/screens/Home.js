@@ -42,7 +42,7 @@ export default function Home() {
                 foodCat.length !== 0 ? (
                     foodCat.map((data) => (
                         <div key={data._id}>
-                            <button className='rounded bg-primary m-3'>{data.CategoryName}</button>
+                            <button className='fs-3 rounded bg-primary m-3'>{data.CategoryName}</button>
                             <hr />
                             <div className="row">
                                 {foodItem.length !== 0
