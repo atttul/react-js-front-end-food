@@ -38,7 +38,9 @@ export default function Navbar(props) {
         <div>
             <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div className="container-fluid">
-                    <Link className="navbar-brand fs-1 fst-italic" to="/">InstaMart</Link>
+                    <img src={process.env.REACT_APP_ICON} 
+                    alt="logo" width="50" height="50"  />
+                    <Link className="navbar-brand fs-3 fst-italic" to="/">Mern Dine</Link>
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li>
                             <Link className="nav-link active" to="/">Home</Link>
