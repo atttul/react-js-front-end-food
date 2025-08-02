@@ -10,13 +10,13 @@ import { useCart } from './ContextReducer';
 
 export default function Navbar(props) {
     const [cartView, setCartView] = useState(false)
-    
+
     const navigate = useNavigate();
     const handleLogout = () => {
         localStorage.removeItem('authToken')
         navigate('/')
     }
-    
+
     const [getCartItems, setGetCartItems] = useState([]);
     const handleGetCartItems = async () => {
         let cartItems = await fetch(`${process.env.REACT_APP_BASE_URL}/fetch/cart/items`, {
@@ -30,7 +30,7 @@ export default function Navbar(props) {
         setGetCartItems(cartItems.data)
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         handleGetCartItems()
     }, [])
 
@@ -38,12 +38,15 @@ export default function Navbar(props) {
         <div>
             <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div className="container-fluid">
-                    <img src={process.env.REACT_APP_ICON} 
-                    alt="logo" width="50" height="50"  />
+                    <img src={process.env.REACT_APP_ICON}
+                        alt="logo" width="50" height="50" />
                     <Link className="navbar-brand fs-3 fst-italic" to="/">Mern Dine</Link>
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li>
                             <Link className="nav-link active" to="/">Home</Link>
+                        </li>
+                        <li>
+                            <Link className="nav-link active" to="/payment">Pay Now</Link>
                         </li>
                         {
                             localStorage.getItem('authToken')
@@ -60,7 +63,7 @@ export default function Navbar(props) {
                             localStorage.getItem('authToken') ? (
                                 <div className="d-flex align-items-center">
                                     <button>User: {localStorage.getItem("loginData")}</button>
-                                    <button className="btn btn-info mx-2" onClick={() => {setCartView(true);}}>My Cart 
+                                    <button className="btn btn-info mx-2" onClick={() => { setCartView(true); }}>My Cart
                                         {/* {console.log("props=", localStorage.getItem("count"))} */}
                                         {/* <Badge pill bg="danger">{props.cartItems.length || ''}</Badge> */}
                                     </button>
@@ -71,9 +74,9 @@ export default function Navbar(props) {
                                 </div>
                             ) : (<div>
                                 {/* <div className="btn btn-success m-2"> */}
-                                    <Link className="btn btn-warning m-2" to="/login">Login</Link>
+                                <Link className="btn btn-warning m-2" to="/login">Login</Link>
 
-                                    <Link className="btn btn-danger m-2" to="/signup">Sign Up</Link>
+                                <Link className="btn btn-danger m-2" to="/signup">Sign Up</Link>
                                 {/* </div> */}
                             </div>
                             )}

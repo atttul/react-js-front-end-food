@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react'
 // import { useCart, useDispatchCart } from '../components/ContextReducer'
-
+import {
+    useNavigate
+} from 'react-router-dom';
 export default function Cart() {
 
     const [getCartItems, setGetCartItems] = useState([]);
+    const navigate = useNavigate();
     // const [deleteCartItem, setDeleteCartItem] = useState({ name: '' });
     // const [createOrder, setCreateOrder] = useState([]);
 
@@ -69,6 +72,7 @@ export default function Cart() {
             body: JSON.stringify(requestBody)
         })
         orderCreated = await orderCreated.json();
+        navigate('/cashfree-payment', { state: { amount: totalPrice } });
         handleGetCartItems()
     }
 

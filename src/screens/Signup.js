@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar';
 
 export default function Signup() {
-    const [credentials, setcredentials] = useState({ name: "", email: "", password: "", geolocation: "" });
+    const [credentials, setcredentials] = useState({ name: "", email: "", password: "", geolocation: "", phone: "" });
     let navigate = useNavigate();
     const handleSubmit = async (event) => {
         event.preventDefault()
@@ -12,7 +12,7 @@ export default function Signup() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ name: credentials.name, email: credentials.email, password: credentials.password, location: credentials.geolocation })
+            body: JSON.stringify({ name: credentials.name, email: credentials.email, password: credentials.password, location: credentials.geolocation, phone: credentials.phone })
         })
         const json = await response.json();
         console.log(json);
@@ -46,6 +46,10 @@ export default function Signup() {
                     <div className="mb-3">
                         <label htmlFor="address" className="form-label">Address</label>
                         <input type="text" className="form-control" id="exampleInputAddress1" name='geolocation' value={credentials.geolocation} onChange={onChange} />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="address" className="form-label">Phone Number</label>
+                        <input type="text" className="form-control" id="exampleInputPhone1" name='phone' value={credentials.phone} onChange={onChange} />
                     </div>
                     <button type="submit" className="m-3 btn btn-success">Submit</button>
                     <Link to='/login' className='m-3 btn btn-danger'>Already a user</Link>

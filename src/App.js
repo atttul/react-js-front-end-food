@@ -13,7 +13,9 @@ import '../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js'
 import Signup from './screens/Signup.js';
 import { CartProvider } from './components/ContextReducer.js';
 import MyOrders from './screens/MyOrders.js';
-
+import CashfreePayment from './screens/CashfreePayment.js';
+import PaymentSuccess from './screens/PaymentSuccess.js';
+import OtpVerify from './screens/OtpVerify.js';
 
 export default function App() {
     return (
@@ -24,6 +26,9 @@ export default function App() {
                     <Route exact path='/login' element={<Login />} />
                     <Route exact path='/signup' element={<Signup />} />
                     <Route exact path='/myorders' element={<MyOrders />} />
+                    <Route exact path="/cashfree-payment" element={<CashfreePayment />} />
+                    <Route exact path="/payment-success" element={<PaymentSuccess />} />
+                    <Route exact path="/otp-verify" element={<OtpVerify />} />
                 </Routes>
             </Router>
         </CartProvider>

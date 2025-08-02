@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 
 export default function Login() {
-    const [credentials, setCredentials] = useState({ email: "", password: "" });
+    const [credentials, setCredentials] = useState({ email: "", password: "", phone: "" });
     const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
@@ -46,7 +46,7 @@ export default function Login() {
             return;
         }
 
-        navigate('/');
+        navigate('/otp-verify', { state: { credentials: credentials } });
     };
 
     const onChange = (event) => {
@@ -81,8 +81,20 @@ export default function Login() {
                         required
                     />
                 </div>
+                <div className="mb-3">
+                    <label htmlFor="phone" className="form-label">Phone Number</label>
+                    <input
+                        type="phone"
+                        className="form-control"
+                        id="phone"
+                        name='phone'
+                        value={credentials.phone}
+                        onChange={onChange}
+                        required
+                    />
+                </div>
                 <button type="submit" className="m-3 btn btn-success">Submit</button>
-                <Link to='/signup' className='m-3 btn btn-danger'>Signup User</Link>
+                <Link to='/signup' className='m-3 btn btn-danger'>Sign Up</Link>
             </form>
         </div>
     );
