@@ -1,6 +1,7 @@
 import { load } from '@cashfreepayments/cashfree-js';
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const CashfreePaymentForm = () => {
     const location = useLocation();
@@ -43,12 +44,18 @@ const CashfreePaymentForm = () => {
     };
 
     return (
-        <div style={{ padding: "2rem" }}>
-            <h2>Place Your Order</h2>
-            <input type="text" name="name" placeholder="Name" value={form.name} onChange={handleChange} /><br />
-            <input type="text" name="address" placeholder="Address" value={form.address} onChange={handleChange} /><br />
-            <input type="text" name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} /><br />
-            <button onClick={handlePay}>Pay Now</button>
+        <div>
+            <Navbar />
+
+            <div style={{ padding: "2rem" }}>
+                <h2>Place Your Order</h2>
+                <input type="text" name="name" placeholder="Name" value={form.name} onChange={handleChange} /><br />
+                <input type="text" name="address" placeholder="Address" value={form.address} onChange={handleChange} /><br />
+                <input type="text" name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} /><br />
+                <br />
+                <p>Total Amount = {location.state.amount}</p>
+                <button className="btn btn-danger m-2" onClick={handlePay}>Pay Now</button>
+            </div>
         </div>
     );
 };
