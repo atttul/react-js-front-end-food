@@ -45,7 +45,7 @@ const OtpVerify = () => {
                     <input
                         type="text"
                         className="form-control mb-3 text-center"
-                        placeholder="Enter OTP"
+                        placeholder="Enter 4-digit OTP"
                         value={form.otp}
                         onChange={handleChange}
                     />
