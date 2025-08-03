@@ -39,10 +39,18 @@ const OtpVerify = () => {
     return (
         <div>
             <Navbar />
-            <div style={{ padding: "2rem", marginTop: "100px", marginLeft: "200px", marginRight: "200px" }}>
-                <h2>Verify OTP</h2>
-                <input type="text" name="otp" placeholder="OTP" value={form.otp} onChange={handleChange} /><br />
-                <button onClick={verifyOtpButton}>Verify OTP</button>
+            <div className="d-flex flex-column align-items-center mt-5">
+                <div className="text-center p-4 border rounded" style={{ width: "300px" }}>
+                    <h4 className="mb-3">Verify OTP</h4>
+                    <input
+                        type="text"
+                        className="form-control mb-3 text-center"
+                        placeholder="Enter OTP"
+                        value={form.otp}
+                        onChange={handleChange}
+                    />
+                    <button className="btn btn-info w-100" onClick={verifyOtpButton}>Verify</button>
+                </div>
             </div>
         </div>
     );
