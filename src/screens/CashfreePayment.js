@@ -7,7 +7,7 @@ const CashfreePaymentForm = () => {
     const [form, setForm] = useState({
         amount: location.state.amount,
         name: '',
-        email: '',
+        address: '',
         phone: ''
     });
 
@@ -20,11 +20,13 @@ const CashfreePaymentForm = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                userId: JSON.parse(localStorage.getItem("userData"))._id,
                 orderAmount: location.state.amount,
                 customerName: form.name,
-                customerId: "cust_atul123",
-                customerEmail: form.email,
-                customerPhone: form.phone
+                customerId: `cust_mern${Math.floor(100000 + Math.random() * 900000)}`,
+                customerEmail: JSON.parse(localStorage.getItem("userData")).email,
+                customerPhone: form.phone,
+                orderAddress: form.address
             })
         });
 
@@ -42,9 +44,9 @@ const CashfreePaymentForm = () => {
 
     return (
         <div style={{ padding: "2rem" }}>
-            <h2>Payment</h2>
+            <h2>Place Your Order</h2>
             <input type="text" name="name" placeholder="Name" value={form.name} onChange={handleChange} /><br />
-            <input type="email" name="email" placeholder="Email" value={form.email} onChange={handleChange} /><br />
+            <input type="text" name="address" placeholder="Address" value={form.address} onChange={handleChange} /><br />
             <input type="text" name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} /><br />
             <button onClick={handlePay}>Pay Now</button>
         </div>

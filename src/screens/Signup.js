@@ -17,9 +17,10 @@ export default function Signup() {
         const json = await response.json();
         console.log(json);
         if (!json.success) {
-            alert(json.message)
+            alert('User already exists in the Database, Please provide different EMAIL or PHONE NUMBER')
+        } else {
+            navigate('/login')
         }
-        navigate('/login')
     }
 
     const onChange = async (event) => {

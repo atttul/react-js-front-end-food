@@ -25,7 +25,10 @@ export default function Login() {
             return;
         }
 
-        localStorage.setItem("authToken", userKey.data);
+        // Storing AuthToken after the OTP verification. (3rd Aug, 2025)
+        // localStorage.setItem("authToken", userKey.data);
+        // localStorage.setItem("userData", JSON.stringify(userKey.user));
+        // console.log("userData===", JSON.parse(localStorage.getItem("userData")).email); 
 
         // Then use that token to login
         const loginResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/login/user`, {

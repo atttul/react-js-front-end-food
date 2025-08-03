@@ -26,7 +26,13 @@ const OtpVerify = () => {
         });
         const data = await res.json();
         if (data.success) {
+            localStorage.setItem("authToken", data.data.access_token);
+            localStorage.setItem("userData", JSON.stringify(data.data));
+            console.log("userData===", JSON.parse(localStorage.getItem("userData")).email); // this the way of using the object in setItem-getItem
             navigate('/', { state: { credentials: location.state.credentials } });
+        } else {
+            localStorage.removeItem('authToken')
+            alert("Invalid OTP, Please try again");
         }
     };
 

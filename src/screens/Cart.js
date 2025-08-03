@@ -51,7 +51,6 @@ export default function Cart() {
 
     const handleOrderCreate = async (getCartItems) => {
         let requestBody = []
-        console.log("getCartItems", getCartItems)
         for (const cartItem of getCartItems) {
             requestBody.push(
                 {
