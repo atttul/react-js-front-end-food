@@ -45,9 +45,6 @@ export default function Navbar(props) {
                         <li>
                             <Link className="nav-link active" to="/">Home</Link>
                         </li>
-                        <li>
-                            <Link className="nav-link active" to="/payment">Pay Now</Link>
-                        </li>
                         {
                             localStorage.getItem('authToken')
                                 ? <div>
