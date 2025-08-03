@@ -50,7 +50,7 @@ export default function Signup() {
                     </div>
                     <div className="mb-3">
                         <label htmlFor="address" className="form-label">Phone Number</label>
-                        <input type="text" className="form-control" id="exampleInputPhone1" name='phone' value={credentials.phone} onChange={onChange} />
+                        <input type="tel" className="form-control" id="exampleInputPhone1" name='phone' value={credentials.phone} onChange={onChange} pattern="[0-9]{10}" maxLength="10"/>
                     </div>
                     <button type="submit" className="m-3 btn btn-success">Submit</button>
                     <Link to='/login' className='m-3 btn btn-danger'>Already a user</Link>
