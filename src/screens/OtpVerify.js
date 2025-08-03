@@ -46,8 +46,10 @@ const OtpVerify = () => {
                         type="text"
                         className="form-control mb-3 text-center"
                         placeholder="Enter 4-digit OTP"
+                        name='otp'
                         value={form.otp}
                         onChange={handleChange}
+                        maxLength="4"
                     />
                     <button className="btn btn-info w-100" onClick={verifyOtpButton}>Verify</button>
                 </div>
