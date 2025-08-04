@@ -38,10 +38,12 @@ export default function Signup() {
                     </div>
                     <div className="mb-3">
                         <label htmlFor="email" className="form-label">Email Address</label>
+                        <p className="text-muted small mb-1">(Remember this Email - this will be used for login)</p>
                         <input type="email" className="form-control" id="exampleInputEmail1" name='email' value={credentials.email} onChange={onChange} />
                     </div>
                     <div className="mb-3">
                         <label htmlFor="password" className="form-label">Password</label>
+                        <p className="text-muted small mb-1">(Remember this Password - this will be used for login)</p>
                         <input type="password" className="form-control" id="exampleInputPassword1" name='password' value={credentials.password} onChange={onChange} />
                     </div>
                     <div className="mb-3">
@@ -50,6 +52,7 @@ export default function Signup() {
                     </div>
                     <div className="mb-3">
                         <label htmlFor="address" className="form-label">Phone Number</label>
+                        <p className="text-muted small mb-1">(Enter a valid 10-digit Number - this will be used for login and OTP verification)</p>
                         <input type="tel" className="form-control" id="exampleInputPhone1" name='phone' value={credentials.phone} onChange={onChange} pattern="[0-9]{10}" maxLength="10"/>
                     </div>
                     <button type="submit" className="m-3 btn btn-success">Submit</button>
