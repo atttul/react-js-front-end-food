@@ -40,6 +40,7 @@ const OtpVerify = () => {
         <div>
             <Navbar />
             <div className="d-flex flex-column align-items-center mt-5">
+                <p className="text-muted small mb-1">(You'll receive an OTP call on your registered Phone Number)</p>
                 <div className="text-center p-4 border rounded" style={{ width: "300px" }}>
                     <h4 className="mb-3">Verify OTP</h4>
                     <input
