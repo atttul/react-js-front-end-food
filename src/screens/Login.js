@@ -41,7 +41,7 @@ export default function Login() {
         });
 
         const loginData = await loginResponse.json();
-        localStorage.setItem("loginData", loginData.data.email);
+        localStorage.setItem("loginData", loginData.data?.email);
         console.log("Login User Data=", loginData.data);
 
         if (!loginData.success) {
