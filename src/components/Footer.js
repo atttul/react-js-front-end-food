@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="col-md-4 d-flex align-items-center">
           <Link to="/" className="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
           </Link>
-          <span className="mb-3 mb-md-0 text-muted">© 2022 GoFood, Inc</span>
+          <span className="mb-3 mb-md-0 text-muted"> © 2025 MernDine, Inc. All rights reserved.</span>
         </div>
 
         <ul className="nav col-md-4 justify-content-end list-unstyled d-flex">
