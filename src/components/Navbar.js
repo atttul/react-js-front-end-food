@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import {
-    Link,
-    useNavigate
-} from 'react-router-dom';
-import Badge from 'react-bootstrap/Badge'
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Cart from '../screens/Cart';
 import Modal from './Modal';
-import { useCart } from './ContextReducer';
+// import Badge from 'react-bootstrap/Badge'
+// import { useCart } from './ContextReducer';
+    
 
 export default function Navbar(props) {
     const [cartView, setCartView] = useState(false)
 
+    const location = useLocation();
     const navigate = useNavigate();
     const handleLogout = () => {
         localStorage.removeItem('authToken')
@@ -31,7 +30,9 @@ export default function Navbar(props) {
     }
 
     useEffect(() => {
-        handleGetCartItems()
+        if (localStorage.getItem('authToken')) {
+            handleGetCartItems()
+        }
     }, [])
 
     return (
@@ -47,36 +48,43 @@ export default function Navbar(props) {
                         </li>
                         {
                             localStorage.getItem('authToken')
-                                ? <div>
+                            ? (
+                                <div>
                                     <li>
                                         <Link className="nav-link active" to="/myorders">My Orders</Link>
                                     </li>
                                 </div>
-                                : ''
+                            )
+                            : ''
                         }
                     </ul>
                     <div>
                         {
-                            localStorage.getItem('authToken') ? (
+                            localStorage.getItem('authToken') 
+                            ? (
                                 <div className="d-flex align-items-center">
-                                    <button>User: {localStorage.getItem("loginData")}</button>
-                                    <button className="btn btn-info mx-2" onClick={() => { setCartView(true); }}>My Cart
-                                        {/* {console.log("props=", localStorage.getItem("count"))} */}
-                                        {/* <Badge pill bg="danger">{props.cartItems.length || ''}</Badge> */}
-                                    </button>
-                                    {cartView ? (<Modal onClose={() => setCartView(false)}><Cart /></Modal>) : ''}
-                                    <button className="btn btn-danger mx-2" onClick={handleLogout}>
-                                        Logout
-                                    </button>
-                                </div>
-                            ) : (<div>
-                                {/* <div className="btn btn-success m-2"> */}
-                                <Link className="btn btn-warning m-2" to="/login">Login</Link>
+                                    <button className="btn btn-warning mx-2" onClick={()=>{navigate('/myorders')}}>Logged-In User: {localStorage.getItem("loggedInUserName")}</button>
+                                    {/* <button className="btn btn-info mx-2">User: {location.state?.credentials?.name}</button> */}
+                                    <button className="btn btn-info mx-2" onClick={() => { setCartView(true); }}>My Cart</button>
 
-                                <Link className="btn btn-danger m-2" to="/signup">Sign Up</Link>
-                                {/* </div> */}
-                            </div>
-                            )}
+                                    {
+                                        cartView 
+                                        ? (
+                                            <Modal onClose={() => setCartView(false)}><Cart /></Modal>
+                                        ) 
+                                        : ''
+                                    }
+
+                                    <button className="btn btn-danger mx-2" onClick={handleLogout}>Logout</button>
+                                </div>
+                            )
+                            : (
+                                <div>
+                                    <Link className="btn btn-warning m-2" to="/login">Login</Link>
+                                    <Link className="btn btn-danger m-2" to="/signup">Sign Up</Link>
+                                </div>
+                            )
+                        }
                     </div>
                 </div>
             </nav>

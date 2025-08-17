@@ -25,7 +25,7 @@ export default function MyOrders() {
     return (
         <div>
             <div><Navbar /></div>
-            <h5 className='d-flex'>My Orders</h5>
+            <button className='btn btn-info m-2' disabled='true'>All My Orders History</button>
             <hr />
             <table className="table table-dark">
                 <thead>
@@ -35,6 +35,8 @@ export default function MyOrders() {
                         <th scope="col">Quantity</th>
                         <th scope="col">Size</th>
                         <th scope="col">Total Price</th>
+                        <th scope="col">Order Status</th>
+                        {/* <th scope="col">Order Date</th> */}
                     </tr>
                 </thead>
                 <tbody>
@@ -46,6 +48,8 @@ export default function MyOrders() {
                                 <td>{food.quantity}</td>
                                 <td>{food.size}</td>
                                 <td>{food.total_amount}</td>
+                                <td>Placed</td>
+                                {/* <td>{food?.order_date}</td> */}
                             </tr>
                         ))
                     }

@@ -25,11 +25,6 @@ export default function Login() {
             return;
         }
 
-        // Storing AuthToken after the OTP verification. (3rd Aug, 2025)
-        // localStorage.setItem("authToken", userKey.data);
-        // localStorage.setItem("userData", JSON.stringify(userKey.user));
-        // console.log("userData===", JSON.parse(localStorage.getItem("userData")).email); 
-
         // Then use that token to login
         const loginResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/login/user`, {
             method: 'POST',
@@ -41,14 +36,13 @@ export default function Login() {
         });
 
         const loginData = await loginResponse.json();
-        localStorage.setItem("loginData", loginData.data?.email);
-        console.log("Login User Data=", loginData.data);
-
+        
         if (!loginData.success) {
             alert(loginData.message || "Login failed");
             return;
         }
-
+        localStorage.setItem("loggedInUserName", loginData.data?.name); 
+        
         navigate('/otp-verify', { state: { credentials: credentials } });
     };
 
@@ -93,6 +87,8 @@ export default function Login() {
                         name='phone'
                         value={credentials.phone}
                         onChange={onChange}
+                        pattern="[0-9]{10}" 
+                        maxLength="10"
                         required
                     />
                 </div>

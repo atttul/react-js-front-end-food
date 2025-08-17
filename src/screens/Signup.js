@@ -5,18 +5,19 @@ import Navbar from '../components/Navbar';
 export default function Signup() {
     const [credentials, setcredentials] = useState({ name: "", email: "", password: "", geolocation: "", phone: "" });
     let navigate = useNavigate();
+
     const handleSubmit = async (event) => {
         event.preventDefault()
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/create/user`, {
+        let response = await fetch(`${process.env.REACT_APP_BASE_URL}/create/user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ name: credentials.name, email: credentials.email, password: credentials.password, location: credentials.geolocation, phone: credentials.phone })
         })
-        const json = await response.json();
-        console.log(json);
-        if (!json.success) {
+        response = await response.json();
+
+        if (!response.success) {
             alert('User already exists in the Database, Please provide different EMAIL or PHONE NUMBER')
         } else {
             navigate('/login')
