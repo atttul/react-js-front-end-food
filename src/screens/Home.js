@@ -46,14 +46,11 @@ export default function Home() {
                             <hr />
                             <div className="row">
                                 {foodItem.length !== 0
-                                    ? foodItem
-                                        .filter((item) => item.CategoryName === data.CategoryName)
+                                    ? foodItem.filter((item) => item.CategoryName === data.CategoryName)
                                         .map((filteredItem) => (
                                             <div className="col-md-4 col-sm-6 mb-3" key={filteredItem._id}>
-                                                <Card
-                                                    foodItem={filteredItem}
-                                                    options={filteredItem.options[0]}
-
+                                                <Card   foodItem={filteredItem}
+                                                        options={filteredItem.options[0]}
                                                 />
                                             </div>
                                         ))
