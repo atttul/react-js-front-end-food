@@ -59,10 +59,11 @@ export default function Home() {
                         </div>
                     ))
                 ) : (
-                    // <p className="text-white">Loading...</p>
-                    <p className="text-white text-lg font-medium animate-pulse tracking-wide">
-                        Loading<span className="animate-bounce inline-block">...</span>
-                    </p>
+                    <div className="flex items-center justify-center h-screen">
+                        <p className="text-white text-xl font-semibold animate-pulse tracking-wide">
+                            Loading...
+                        </p>
+                    </div>
                 )}
             </div>
 
