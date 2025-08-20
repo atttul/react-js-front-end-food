@@ -59,7 +59,10 @@ export default function Home() {
                         </div>
                     ))
                 ) : (
-                    <p className="text-white">No categories found.</p>
+                    // <p className="text-white">Loading...</p>
+                    <p className="text-white text-lg font-medium animate-pulse tracking-wide">
+                        Loading<span className="animate-bounce inline-block">...</span>
+                    </p>
                 )}
             </div>
 
