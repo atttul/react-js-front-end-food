@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import OrderTrackerModal from '../components/OrderTrackerModal';
 
 export default function MyOrders() {
     const [getAllOrders, setGetAllOrders] = useState([]);
+    const [selectedTrackOrder, setSelectedTrackOrder] = useState(null);
 
     const handleGetAllOrders = async () => {
         let allOrders = await fetch(`${process.env.REACT_APP_BASE_URL}/order/fetch`, {
@@ -52,6 +54,7 @@ export default function MyOrders() {
                                     <th scope="col" className="py-3 text-center">Size / Option</th>
                                     <th scope="col" className="py-3 text-end">Total Price</th>
                                     <th scope="col" className="py-3 text-center">Status</th>
+                                    <th scope="col" className="py-3 text-center">GPS Live Track</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -72,6 +75,14 @@ export default function MyOrders() {
                                                     <i className="bi bi-check-circle-fill me-1"></i> Placed
                                                 </span>
                                             </td>
+                                            <td className="text-center">
+                                                <button 
+                                                    className="btn btn-warning btn-sm fw-bold d-inline-flex align-items-center px-3 py-1 rounded-pill shadow-sm"
+                                                    onClick={() => setSelectedTrackOrder(food)}
+                                                >
+                                                    <i className="bi bi-geo-alt-fill me-1"></i> Track Live (30 Mins)
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))
                                 }
@@ -79,9 +90,18 @@ export default function MyOrders() {
                         </table>
                     </div>
                 )}
+
+                {/* Render GPS Tracker Modal if an order is selected */}
+                {selectedTrackOrder && (
+                    <OrderTrackerModal 
+                        order={selectedTrackOrder} 
+                        onClose={() => setSelectedTrackOrder(null)} 
+                    />
+                )}
             </div>
             <Footer />
         </div>
     )
 }
+
 
