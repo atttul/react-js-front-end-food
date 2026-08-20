@@ -4,7 +4,6 @@ import Footer from '../components/Footer'
 import Card from '../components/Card'
 import Carousel from '../components/Carousel'
 
-
 export default function Home() {
     let [foodCat, setFoodCat] = useState([]);
     let [foodItem, setFoodItem] = useState([]);
@@ -34,40 +33,47 @@ export default function Home() {
     }, []);
     
     return (
-        <div>
-            <div><Navbar /></div>
-            <div><Carousel /></div>
-            <div className="container">
+        <div className="d-flex flex-column min-vh-100">
+            <Navbar />
+            <Carousel />
+            <div className="container my-4 flex-grow-1">
                 {
                 foodCat.length !== 0 ? (
                     foodCat.map((data) => (
-                        <div key={data._id}>
-                            <button className='fs-3 rounded bg-primary m-3'>{data.CategoryName}</button>
-                            <hr />
-                            <div className="row">
+                        <div key={data._id} className="mb-5">
+                            <div className="d-flex align-items-center mb-3">
+                                <span className="category-badge fs-4 me-3">
+                                    <i className="bi bi-tag-fill me-2"></i>{data.CategoryName}
+                                </span>
+                                <div className="flex-grow-1 border-bottom border-secondary opacity-25"></div>
+                            </div>
+                            <div className="row g-4">
                                 {foodItem.length !== 0
                                     ? foodItem.filter((item) => item.CategoryName === data.CategoryName)
                                         .map((filteredItem) => (
-                                            <div className="col-md-4 col-sm-6 mb-3" key={filteredItem._id}>
-                                                <Card   foodItem={filteredItem}
-                                                        options={filteredItem.options[0]}
+                                            <div className="col-12 col-md-6 col-lg-4 d-flex align-items-stretch" key={filteredItem._id}>
+                                                <Card 
+                                                    foodItem={filteredItem}
+                                                    options={filteredItem.options[0]}
                                                 />
                                             </div>
                                         ))
-                                    : <p className="text-white">No items found.</p>}
+                                    : <p className="text-muted fs-6 italic">No items found in this category.</p>}
                             </div>
                         </div>
                     ))
                 ) : (
-                    <div className="flex items-center justify-center h-screen">
-                        <p className="text-white text-xl font-semibold animate-pulse tracking-wide">
-                            Loading...
-                        </p>
+                    <div className="d-flex flex-column align-items-center justify-content-center my-5 py-5">
+                        <div className="spinner-border text-warning mb-3" role="status" style={{ width: '3rem', height: '3rem' }}>
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <p className="text-muted fw-semibold">Fetching delicious food items...</p>
                     </div>
                 )}
             </div>
 
-            <div><Footer /></div>
+            <Footer />
         </div>
     )
 }
+

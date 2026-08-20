@@ -2,11 +2,12 @@ import { load } from '@cashfreepayments/cashfree-js';
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 const CashfreePaymentForm = () => {
     const location = useLocation();
     const [form, setForm] = useState({
-        amount: location.state.amount,
+        amount: location.state?.amount || 0,
         name: '',
         address: '',
         phone: ''
@@ -44,35 +45,45 @@ const CashfreePaymentForm = () => {
     };
 
     return (
-        <div>
+        <div className="d-flex flex-column min-vh-100">
             <Navbar />
-            {/* <div style={{ padding: "2rem" }}>
-                <h2>Place Your Order</h2>
-                <input type="text" name="name" placeholder="Name" value={form.name} onChange={handleChange} /><br />
-                <input type="text" name="address" placeholder="Address" value={form.address} onChange={handleChange} /><br />
-                <input type="text" name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} /><br />
-                <br />
-                <p>Total Amount = {location.state.amount}</p>
-                <button className="btn btn-danger m-2" onClick={handlePay}>Pay Now</button> 
-            </div> */}
-            <div className='container'>
-                <div className="mb-3">
-                    <label htmlFor="name" className="form-label">Name</label>
-                    <input type="text" className="form-control" name='name' value={form.name} onChange={handleChange} />
+            <div className="container d-flex justify-content-center align-items-center flex-grow-1 py-5">
+                <div className="card food-card p-4 p-sm-5 shadow-lg border-0" style={{ maxWidth: '520px', width: '100%' }}>
+                    <div className="text-center mb-4">
+                        <div className="d-inline-block p-3 rounded-circle bg-dark border border-secondary mb-3 text-warning">
+                            <i className="bi bi-credit-card-2-front fs-2"></i>
+                        </div>
+                        <h3 className="fw-bold text-white mb-1">Checkout & Payment</h3>
+                        <p className="text-muted small">Enter your delivery details to proceed with payment</p>
+                    </div>
+
+                    <div className="mb-3">
+                        <label htmlFor="name" className="form-label text-white-50 fw-semibold small">Customer Name</label>
+                        <input type="text" className="form-control bg-dark text-white border-secondary" name='name' placeholder="Full Name" value={form.name} onChange={handleChange} required />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="address" className="form-label text-white-50 fw-semibold small">Delivery Address</label>
+                        <input type="text" className="form-control bg-dark text-white border-secondary" name='address' placeholder="Full Street Address" value={form.address} onChange={handleChange} required />
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="phone" className="form-label text-white-50 fw-semibold small">Phone Number</label>
+                        <input type="text" className="form-control bg-dark text-white border-secondary" name='phone' placeholder="10 Digit Phone Number" value={form.phone} onChange={handleChange} required />
+                    </div>
+
+                    <div className="bg-dark p-3 rounded-3 border border-secondary mb-4 d-flex align-items-center justify-content-between">
+                        <span className="text-muted font-semibold">Total Amount Payable:</span>
+                        <span className="fs-3 fw-bold text-warning">₹{form.amount}/-</span>
+                    </div>
+
+                    <button className="btn btn-brand w-100 py-3 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 shadow" onClick={handlePay}>
+                        <i className="bi bi-lock-fill"></i> Pay Now with Cashfree
+                    </button>
                 </div>
-                <div className="mb-3">
-                    <label htmlFor="address" className="form-label">Address</label>
-                    <input type="text" className="form-control" name='address' value={form.address} onChange={handleChange} />
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="phone" className="form-label">Phone Number</label>
-                    <input type="text" className="form-control" name='phone' value={form.phone} onChange={handleChange} />
-                </div>
-                <h4>Total Amount = {form.amount}</h4>
-                <button className="btn btn-danger m-2" onClick={handlePay}>Pay Now</button>
             </div>
+            <Footer />
         </div>
     );
 };
 
 export default CashfreePaymentForm;
+

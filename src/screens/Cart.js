@@ -1,14 +1,9 @@
 import React, { useEffect, useState } from 'react'
-// import { useCart, useDispatchCart } from '../components/ContextReducer'
-import {
-    useNavigate
-} from 'react-router-dom';
-export default function Cart() {
+import { useNavigate } from 'react-router-dom';
 
+export default function Cart() {
     const [getCartItems, setGetCartItems] = useState([]);
     const navigate = useNavigate();
-    // const [deleteCartItem, setDeleteCartItem] = useState({ name: '' });
-    // const [createOrder, setCreateOrder] = useState([]);
 
     const handleGetCartItems = async () => {
         let cartItems = await fetch(`${process.env.REACT_APP_BASE_URL}/fetch/cart/items`, {
@@ -19,21 +14,25 @@ export default function Cart() {
             },
         })
         cartItems = await cartItems.json();
-
-        setGetCartItems(cartItems.data)
+        setGetCartItems(cartItems.data || [])
     }
 
-    useEffect(()=> {
+    useEffect(() => {
         handleGetCartItems()
-    },[])
+    }, [])
 
-    if (getCartItems.length === 0) {
+    if (!getCartItems || getCartItems.length === 0) {
         return (
-            <div>
-                <div className='m-5 w-100 text-center fs-3'>The Cart is Empty</div>
+            <div className="text-center py-5">
+                <div className="mb-3">
+                    <i className="bi bi-cart-x text-muted" style={{ fontSize: '4rem' }}></i>
+                </div>
+                <h3 className="fw-bold text-white mb-2">Your Cart is Empty</h3>
+                <p className="text-muted">Explore our delicious menu and add your favorite dishes!</p>
             </div>
         )
     }
+
     let totalPrice = getCartItems.reduce((total, food) => total + food.total_amount, 0)
 
     const handleDeleteCartItem = async (name) => {
@@ -76,42 +75,72 @@ export default function Cart() {
     }
 
     return (
-        <div>
-            <div className='container m-auto mt-5 table-responsive  table-responsive-sm table-responsive-md' >
-                <table className='table table-dark table-hover '>
-                    <thead className=' text fs-4'>
+        <div className="py-3">
+            <div className="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary pb-3">
+                <h4 className="fw-bold text-white mb-0 d-flex align-items-center">
+                    <i className="bi bi-cart-check me-2 text-warning"></i> Your Cart Items
+                </h4>
+                <span className="badge bg-secondary rounded-pill px-3 py-2 fs-6">
+                    {getCartItems.length} {getCartItems.length === 1 ? 'Item' : 'Items'}
+                </span>
+            </div>
+
+            <div className="table-responsive rounded-3 border border-secondary overflow-hidden mb-4">
+                <table className="table table-dark table-hover mb-0 align-middle">
+                    <thead className="table-secondary text-uppercase small fw-bold">
                         <tr>
-                            <th scope='col' >#</th>
-                            <th scope='col' >Name</th>
-                            <th scope='col' >Quantity</th>
-                            <th scope='col' >Option</th>
-                            <th scope='col' >Amount</th>
-                            <th scope='col' ></th>
+                            <th scope="col" className="py-3 px-3">#</th>
+                            <th scope="col" className="py-3">Item Name</th>
+                            <th scope="col" className="py-3 text-center">Quantity</th>
+                            <th scope="col" className="py-3 text-center">Option</th>
+                            <th scope="col" className="py-3 text-end">Amount</th>
+                            <th scope="col" className="py-3 text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {
                             getCartItems.map((food, index) => (
-                                <tr>
-                                    <th scope='row' >{index + 1}</th>
-                                    <td>{food.product_name}</td>
-                                    <td>{food.quantity}</td>
-                                    <td>{food.size}</td>
-                                    <td>{food.total_amount}</td>
-                                    <td ><button type="button" className="btn btn-success">
-                                        <img src='https://imgs.search.brave.com/xhSVqFdFF5tNJnLpRQHIyVFYSbTzkYEGajrqt-phJXo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly91eHdp/bmcuY29tL3dwLWNv/bnRlbnQvdGhlbWVz/L3V4d2luZy9kb3du/bG9hZC91c2VyLWlu/dGVyZmFjZS90cmFz/aC1kZWxldGUtd2hp/dGUtaWNvbi5wbmc'
-                                        alt='delete' onClick={() => {handleDeleteCartItem(food.product_name);}} 
-                                        style={{ width: "20px", height: "20px", objectFit: "contain" }}/></button> </td>
+                                <tr key={index}>
+                                    <th scope="row" className="px-3 text-muted">{index + 1}</th>
+                                    <td className="fw-semibold text-white">{food.product_name}</td>
+                                    <td className="text-center">
+                                        <span className="badge bg-dark border border-secondary px-3 py-1">
+                                            {food.quantity}
+                                        </span>
+                                    </td>
+                                    <td className="text-center text-info font-monospace">{food.size}</td>
+                                    <td className="text-end fw-bold text-warning">₹{food.total_amount}/-</td>
+                                    <td className="text-center">
+                                        <button 
+                                            type="button" 
+                                            className="btn btn-outline-danger btn-sm rounded-circle p-2 d-inline-flex align-items-center justify-content-center"
+                                            title="Delete item"
+                                            onClick={() => {handleDeleteCartItem(food.product_name);}}
+                                            style={{ width: '36px', height: '36px' }}
+                                        >
+                                            <i className="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                             ))
                         }
                     </tbody>
                 </table>
-                <div><h1 className='fs-2'>Total Price: {totalPrice}/-</h1></div>
+            </div>
+
+            <div className="d-flex flex-column flex-sm-row align-items-center justify-content-between pt-2 gap-3">
                 <div>
-                    <button className='btn bg-success mt-5' onClick={()=>handleOrderCreate(getCartItems)}> Place Order </button>
+                    <span className="text-muted fs-6 me-2">Total Amount:</span>
+                    <span className="fs-2 fw-extrabold text-warning">₹{totalPrice}/-</span>
                 </div>
+                <button 
+                    className="btn btn-brand btn-lg px-5 py-2 fw-bold d-flex align-items-center gap-2 shadow" 
+                    onClick={()=>handleOrderCreate(getCartItems)}
+                >
+                    <i className="bi bi-credit-card-fill"></i> Place Order
+                </button>
             </div>
         </div>
     )
 }
+
