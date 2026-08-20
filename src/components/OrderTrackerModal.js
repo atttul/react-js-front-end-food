@@ -13,6 +13,20 @@ export default function OrderTrackerModal({ order, onClose }) {
     const restaurantCoords = [28.6315, 77.2167]; // Restaurant
     const userCoords = [28.6139, 77.2090];       // Customer Location
 
+    // Fetch live backend tracking if order ID is present
+    useEffect(() => {
+        if (order?._id) {
+            fetch(`${process.env.REACT_APP_BASE_URL}/order/track/${order._id}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.success && data.data && typeof data.data.remaining_seconds === 'number') {
+                        setSecondsLeft(data.data.remaining_seconds);
+                    }
+                })
+                .catch((err) => console.error("Live tracking API error:", err));
+        }
+    }, [order]);
+
     // Calculate current rider position along route based on progress percentage
     const getCurrentRiderCoords = (percent) => {
         const fraction = Math.min(Math.max(percent / 100, 0), 1);
