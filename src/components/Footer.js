@@ -3,19 +3,20 @@ import { Link } from 'react-router-dom'
 
 export default function Footer() {
     return (
-        <div>
-            <div className="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-                <div className="col-md-4 d-flex align-items-center">
-                    <Link to="/" className="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1"></Link>
-                    <span className="mb-3 mb-md-0 text-muted"> © 2025 MernDine, Inc. All rights reserved.</span>
+        <footer className="mt-auto py-4 bg-dark border-top border-secondary opacity-90">
+            <div className="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <div className="d-flex align-items-center">
+                    <span className="fs-5 fw-bold text-white me-2">Mern <span style={{ color: 'var(--primary-color)' }}>Dine</span></span>
+                    <span className="text-muted small">© {new Date().getFullYear()} MernDine, Inc. All rights reserved.</span>
                 </div>
 
-                <ul className="nav col-md-4 justify-content-end list-unstyled d-flex">
-                    <li className="ms-3"><Link className="text-muted" to="#"></Link></li>
-                    <li className="ms-3"><Link className="text-muted" to="#"></Link></li>
-                    <li className="ms-3"><Link className="text-muted" to="#"></Link></li>
+                <ul className="nav list-unstyled d-flex gap-3 mb-0">
+                    <li><Link className="text-muted fs-5 hover-white" to="#"><i className="bi bi-twitter-x"></i></Link></li>
+                    <li><Link className="text-muted fs-5 hover-white" to="#"><i className="bi bi-instagram"></i></Link></li>
+                    <li><Link className="text-muted fs-5 hover-white" to="#"><i className="bi bi-facebook"></i></Link></li>
                 </ul>
             </div>
-        </div>
+        </footer>
     )
 }
+

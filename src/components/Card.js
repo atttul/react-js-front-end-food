@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useDispatchCart } from './ContextReducer';
 
 export default function Card(props) {
     const options = Object.keys(props.options);
 
-    // let dispatch = useDispatchCart()
     let [qty, setQty] = useState(1)
     let [size, setSize] = useState()
     const [successMessage, setSuccessMessage] = useState('');
@@ -15,13 +13,6 @@ export default function Card(props) {
             setTimeout(() => {
                 setSuccessMessage('');
             }, 5000);
-            {
-                successMessage && (
-                    <div style={{ marginTop: '10px' }}>
-                        {successMessage}
-                    </div>
-                )
-            }
             return;
         }
         let addedCartItem = await fetch(`${process.env.REACT_APP_BASE_URL}/add/cart/item`, {
@@ -41,7 +32,7 @@ export default function Card(props) {
         // ✅ Set success message
         setSuccessMessage('Item added to cart successfully!');
 
-        // ✅ Clear it after 5 seconds
+        // ✅ Clear it after 3 seconds
         setTimeout(() => {
             setSuccessMessage('');
         }, 3000);
@@ -55,46 +46,62 @@ export default function Card(props) {
     }, [])
 
     return (
-        <div id='cart-root'>
-            <div className="card m-3" >
-                <div className="card-body">
-                    <h5 className="card-title mb-1">{props.foodItem.name}</h5>
-                    {successMessage && (
-                        <div className="alert alert-success" role="alert">
-                            {successMessage}
-                        </div>
-                    )}
+        <div>
+            <div className="card food-card h-100 border-0 shadow-sm">
+                <div className="overflow-hidden position-relative" style={{ height: "180px" }}>
                     <img
                         src={props.foodItem.img}
-                        alt="food"
-                        className="w-100"
-                        style={{ height: "150px", objectFit: "cover", borderRadius: "8px" }}
+                        alt={props.foodItem.name}
+                        className="w-100 h-100 food-card-img"
+                        style={{ objectFit: "cover" }}
                     />
-
-                    {/* this is first loop DROPDOWN */}
-                    <select className='bg-info rounded' onChange={(e) => setQty(e.target.value)}>
-                        {Array.from(Array(6), (e, i) => {
-                            return (
-                                <option key={i + 1} value={i + 1}>{i + 1}</option>
-                            )
-                        })}
-                    </select>
-                    {/* this is second loop DROPDOWN */}
-                    <select className='m-2 h-100 bg-warning rounded' ref={priceRef} onChange={(e) => { setSize(e.target.value) }}>
-                        {options.map(data => {
-                            return (
-                                <option key={data} value={data}>{data}</option>
-                            )
-                        })
-                        }
-                    </select>
-                    <div className='d-inline fs-5' >Price = {finalPrice}/-</div>
-                    <hr />
+                </div>
+                <div className="card-body d-flex flex-column justify-content-between p-3">
                     <div>
-                        <button className='btn btn-danger' onClick={handleAddCart}>Add To Cart</button>
+                        <h5 className="card-title fw-bold text-white mb-2 fs-5">{props.foodItem.name}</h5>
+                        {successMessage && (
+                            <div className={`alert ${localStorage.getItem("authToken") ? 'alert-success' : 'alert-warning'} py-2 px-3 small rounded-3 mb-2`} role="alert">
+                                {successMessage}
+                            </div>
+                        )}
+                        
+                        <div className="d-flex align-items-center justify-content-between my-3 gap-2">
+                            <div className="d-flex align-items-center gap-1">
+                                <label className="text-muted small me-1">Qty:</label>
+                                <select className="custom-select form-select-sm" onChange={(e) => setQty(e.target.value)}>
+                                    {Array.from(Array(6), (e, i) => {
+                                        return (
+                                            <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                        )
+                                    })}
+                                </select>
+                            </div>
+
+                            <div className="d-flex align-items-center gap-1">
+                                <label className="text-muted small me-1">Option:</label>
+                                <select className="custom-select form-select-sm" ref={priceRef} onChange={(e) => { setSize(e.target.value) }}>
+                                    {options.map(data => {
+                                        return (
+                                            <option key={data} value={data}>{data}</option>
+                                        )
+                                    })}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border-top border-secondary pt-3 mt-1">
+                        <div className="d-flex align-items-center justify-content-between mb-3">
+                            <span className="text-muted small">Total Price</span>
+                            <span className="fs-5 fw-bold text-warning">₹{finalPrice}/-</span>
+                        </div>
+                        <button className="btn btn-brand w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" onClick={handleAddCart}>
+                            <i className="bi bi-bag-plus fs-6"></i> Add To Cart
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     )
 }
+

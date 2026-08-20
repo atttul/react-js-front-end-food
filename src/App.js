@@ -3,8 +3,7 @@ import Home from './screens/Home.js';
 import {
     BrowserRouter as Router,
     Routes,
-    Route,
-    Link
+    Route
 } from 'react-router-dom';
 import Login from './screens/Login.js';
 import '../node_modules/bootstrap-dark-5/dist/css/bootstrap-dark.min.css';
