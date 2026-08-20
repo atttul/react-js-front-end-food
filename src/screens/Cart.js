@@ -36,7 +36,7 @@ export default function Cart() {
     let totalPrice = getCartItems.reduce((total, food) => total + food.total_amount, 0)
 
     const handleDeleteCartItem = async (name) => {
-        let cartItemDeleted = await fetch(`${process.env.REACT_APP_BASE_URL}/delete/cart/item`, {
+        await fetch(`${process.env.REACT_APP_BASE_URL}/delete/cart/item`, {
             method: 'DELETE',
             headers: {
                 "authorization": `Bearer ${localStorage.getItem("authToken")}`,
@@ -44,7 +44,6 @@ export default function Cart() {
             },
             body: JSON.stringify({ name: name })
         })
-        cartItemDeleted = await cartItemDeleted.json();
         handleGetCartItems()
     }
 
@@ -61,7 +60,7 @@ export default function Cart() {
                 })
         }
 
-        let orderCreated = await fetch(`${process.env.REACT_APP_BASE_URL}/order/create`, {
+        await fetch(`${process.env.REACT_APP_BASE_URL}/order/create`, {
             method: 'POST',
             headers: {
                 "authorization": `Bearer ${localStorage.getItem("authToken")}`,
@@ -69,7 +68,6 @@ export default function Cart() {
             },
             body: JSON.stringify(requestBody)
         })
-        orderCreated = await orderCreated.json();
         navigate('/cashfree-payment', { state: { amount: totalPrice } });
         handleGetCartItems()
     }

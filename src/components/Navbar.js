@@ -83,6 +83,11 @@ export default function Navbar(props) {
 
                                         <button className="btn btn-brand d-inline-flex align-items-center px-3 py-2" onClick={() => { setCartView(true); }}>
                                             <i className="bi bi-cart3 me-2 fs-5"></i> My Cart
+                                            {getCartItems && getCartItems.length > 0 && (
+                                                <span className="badge bg-warning text-dark ms-2 rounded-pill fw-bold">
+                                                    {getCartItems.length}
+                                                </span>
+                                            )}
                                         </button>
 
                                         {
