@@ -7,6 +7,7 @@ import Carousel from '../components/Carousel'
 export default function Home() {
     let [foodCat, setFoodCat] = useState([]);
     let [foodItem, setFoodItem] = useState([]);
+    let [search, setSearch] = useState('');
 
     const loadData = async () => {
         let foodItems = await fetch(`${process.env.REACT_APP_BASE_URL}/food/data`, {
@@ -33,35 +34,77 @@ export default function Home() {
     }, []);
     
     return (
-        <div className="d-flex flex-column min-vh-100">
+        <div className="d-flex flex-column min-vh-100 position-relative">
             <Navbar />
             <Carousel />
-            <div className="container my-4 flex-grow-1">
-                {
-                foodCat.length !== 0 ? (
-                    foodCat.map((data) => (
-                        <div key={data._id} className="mb-5">
-                            <div className="d-flex align-items-center mb-3">
-                                <span className="category-badge fs-4 me-3">
-                                    <i className="bi bi-tag-fill me-2"></i>{data.CategoryName}
+            
+            {/* Search & Feature Highlights Bar */}
+            <div className="container my-3">
+                <div className="search-container p-3 mb-4">
+                    <div className="row g-3 align-items-center">
+                        <div className="col-12 col-md-6">
+                            <div className="input-group">
+                                <span className="input-group-text bg-transparent border-0 text-warning fs-5">
+                                    <i className="bi bi-search"></i>
                                 </span>
-                                <div className="flex-grow-1 border-bottom border-secondary opacity-25"></div>
-                            </div>
-                            <div className="row g-4">
-                                {foodItem.length !== 0
-                                    ? foodItem.filter((item) => item.CategoryName === data.CategoryName)
-                                        .map((filteredItem) => (
-                                            <div className="col-12 col-md-6 col-lg-4 d-flex align-items-stretch" key={filteredItem._id}>
-                                                <Card 
-                                                    foodItem={filteredItem}
-                                                    options={filteredItem.options[0]}
-                                                />
-                                            </div>
-                                        ))
-                                    : <p className="text-muted fs-6 italic">No items found in this category.</p>}
+                                <input 
+                                    type="search" 
+                                    className="form-control search-input fs-6" 
+                                    placeholder="Search your favorite food (e.g., Paneer, Pizza, Burger)..." 
+                                    value={search} 
+                                    onChange={(e) => setSearch(e.target.value)} 
+                                />
                             </div>
                         </div>
-                    ))
+                        <div className="col-12 col-md-6 d-flex flex-wrap justify-content-md-end gap-2">
+                            <span className="feature-badge">
+                                <i className="bi bi-lightning-charge-fill text-warning me-1"></i> Fast Delivery
+                            </span>
+                            <span className="feature-badge">
+                                <i className="bi bi-[#fd5631] bi-fire me-1 text-danger"></i> Fresh Cooked
+                            </span>
+                            <span className="feature-badge">
+                                <i className="bi bi-shield-check text-info me-1"></i> 100% Hygienic
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="container mb-5 flex-grow-1">
+                {
+                foodCat.length !== 0 ? (
+                    foodCat.map((data) => {
+                        const filteredItems = foodItem.filter((item) => 
+                            (item.CategoryName === data.CategoryName) && 
+                            (item.name.toLowerCase().includes(search.toLowerCase()))
+                        );
+
+                        if (search && filteredItems.length === 0) return null;
+
+                        return (
+                            <div key={data._id} className="mb-5">
+                                <div className="d-flex align-items-center mb-3">
+                                    <span className="category-badge fs-4 me-3">
+                                        <i className="bi bi-tag-fill me-2"></i>{data.CategoryName}
+                                    </span>
+                                    <div className="flex-grow-1 border-bottom border-secondary opacity-25"></div>
+                                </div>
+                                <div className="row g-4">
+                                    {filteredItems.length !== 0
+                                        ? filteredItems.map((filteredItem) => (
+                                                <div className="col-12 col-md-6 col-lg-4 d-flex align-items-stretch" key={filteredItem._id}>
+                                                    <Card 
+                                                        foodItem={filteredItem}
+                                                        options={filteredItem.options[0]}
+                                                    />
+                                                </div>
+                                            ))
+                                        : <p className="text-muted fs-6 italic">No items found in this category.</p>}
+                                </div>
+                            </div>
+                        );
+                    })
                 ) : (
                     <div className="d-flex flex-column align-items-center justify-content-center my-5 py-5">
                         <div className="spinner-border text-warning mb-3" role="status" style={{ width: '3rem', height: '3rem' }}>
@@ -76,4 +119,5 @@ export default function Home() {
         </div>
     )
 }
+
 
