@@ -189,29 +189,18 @@ export default function Cart(props) {
     };
 
     const handleOrderCreate = async (getCartItems) => {
-        let requestBody = [];
-        for (const cartItem of getCartItems) {
-            requestBody.push({
-                userId: cartItem.user_id,
-                email: '@gmail.com',
-                name: cartItem.product_name,
-                qty: cartItem.quantity,
-                size: cartItem.size
-            });
+        if (!getCartItems || getCartItems.length === 0) return;
+        
+        localStorage.setItem("lastCartTotal", totalPrice);
+        localStorage.setItem("pendingCartItems", JSON.stringify(getCartItems));
+
+        if (props.onClose) {
+            props.onClose();
         }
 
-        await fetch(`${process.env.REACT_APP_BASE_URL}/order/create`, {
-            method: 'POST',
-            headers: {
-                "authorization": `Bearer ${localStorage.getItem("authToken")}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-        });
-        localStorage.setItem("lastCartTotal", totalPrice);
-        navigate('/cashfree-payment', { state: { amount: totalPrice } });
-        handleGetCartItems();
+        navigate('/cashfree-payment', { state: { amount: totalPrice, cartItems: getCartItems } });
     };
+
 
 
     return (

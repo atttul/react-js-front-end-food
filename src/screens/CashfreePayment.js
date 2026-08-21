@@ -1,5 +1,5 @@
 import { load } from '@cashfreepayments/cashfree-js';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -31,6 +31,24 @@ const CashfreePaymentForm = () => {
     const envMode = process.env.REACT_APP_CASHFREE_ENVIRONMENT || 'sandbox';
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [cashfreeObj, setCashfreeObj] = useState(null);
+
+    // Pre-load Cashfree SDK on component mount
+    useEffect(() => {
+        let isMounted = true;
+        const initSdk = async () => {
+            try {
+                const cf = await load({ mode: envMode });
+                if (isMounted) {
+                    setCashfreeObj(cf);
+                }
+            } catch (e) {
+                console.warn("Cashfree SDK pre-loader info:", e);
+            }
+        };
+        initSdk();
+        return () => { isMounted = false; };
+    }, [envMode]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -62,7 +80,7 @@ const CashfreePaymentForm = () => {
             const userEmail = initialUserData.email || `${form.phone.trim()}@gmail.com`;
             const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
 
-            // Step 1: Create Cashfree Order on Backend
+            // Step 1: Create Cashfree Order Session on Backend
             const res = await fetch(`${baseUrl}/create/cashfree/order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -80,21 +98,47 @@ const CashfreePaymentForm = () => {
             const data = await res.json();
 
             if (!res.ok || !data || !data.sessionId) {
-                setErrorMsg(data?.message || "Failed to generate Cashfree payment session. Please try again.");
+                setErrorMsg(data?.message || "Failed to generate Cashfree payment session. Please check your details.");
                 setLoading(false);
                 return;
             }
 
-            // Step 2: Load Cashfree SDK & Launch Payment Gateway
-            const cashfree = await load({ mode: envMode });
-            await cashfree.checkout({
+            // Finalize order & clear cart only upon payment initiation
+            const pendingCartItemsStr = localStorage.getItem("pendingCartItems");
+            if (pendingCartItemsStr) {
+                try {
+                    const cartItems = JSON.parse(pendingCartItemsStr);
+                    const requestBody = cartItems.map(item => ({
+                        userId: item.user_id,
+                        email: userEmail,
+                        name: item.product_name,
+                        qty: item.quantity,
+                        size: item.size
+                    }));
+                    await fetch(`${baseUrl}/order/create`, {
+                        method: 'POST',
+                        headers: {
+                            "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    localStorage.removeItem("pendingCartItems");
+                } catch (e) {
+                    console.error("Order creation sync error:", e);
+                }
+            }
+
+            // Step 2: Launch Cashfree Payment SDK Checkout Modal
+            const cf = cashfreeObj || await load({ mode: envMode });
+            await cf.checkout({
                 paymentSessionId: data.sessionId,
                 redirectTarget: '_self'
             });
 
         } catch (err) {
             console.error("Cashfree Payment Checkout Error:", err);
-            setErrorMsg("Failed to launch Cashfree Payment Gateway. Please check your internet connection and try again.");
+            setErrorMsg(`Gateway launch error: ${err.message || err}`);
         } finally {
             setLoading(false);
         }
