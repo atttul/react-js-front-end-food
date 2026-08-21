@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Cart from '../screens/Cart';
 import Modal from './Modal';
 
 export default function Navbar(props) {
     const [cartView, setCartView] = useState(false)
     const navigate = useNavigate();
+    const location = useLocation();
+
     const handleLogout = () => {
         localStorage.removeItem('authToken')
         navigate('/')
@@ -13,16 +15,38 @@ export default function Navbar(props) {
 
     const [getCartItems, setGetCartItems] = useState([]);
     const handleGetCartItems = async () => {
-        let cartItems = await fetch(`${process.env.REACT_APP_BASE_URL}/fetch/cart/items`, {
-            method: 'GET',
-            headers: {
-                "authorization": `Bearer ${localStorage.getItem("authToken")}`,
-                'Content-Type': 'application/json',
-            },
-        })
-        cartItems = await cartItems.json();
-        setGetCartItems(cartItems.data)
-    }
+        try {
+            let res = await fetch(`${process.env.REACT_APP_BASE_URL}/fetch/cart/items`, {
+                method: 'GET',
+                headers: {
+                    "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            let cartItems = await res.json();
+            let items = cartItems.data || [];
+            
+            if ((!items || items.length === 0) && localStorage.getItem("pendingCartItems")) {
+                try {
+                    items = JSON.parse(localStorage.getItem("pendingCartItems"));
+                } catch (e) {}
+            }
+            setGetCartItems(items || []);
+        } catch (err) {
+            console.error("Error fetching cart items:", err);
+            if (localStorage.getItem("pendingCartItems")) {
+                try {
+                    setGetCartItems(JSON.parse(localStorage.getItem("pendingCartItems")));
+                } catch (e) {}
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (location.state?.openCart) {
+            setCartView(true);
+        }
+    }, [location.state]);
 
     useEffect(() => {
         if (localStorage.getItem('authToken')) {
@@ -40,6 +64,7 @@ export default function Navbar(props) {
             window.removeEventListener('cartUpdated', handleCartUpdate);
         }
     }, [])
+
 
     return (
         <div>
