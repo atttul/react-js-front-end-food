@@ -9,6 +9,7 @@ export default function Login() {
     const [credentials, setCredentials] = useState({ email: "", password: "", phone: "" });
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(true);
+    const [agreeTerms, setAgreeTerms] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
@@ -397,19 +398,34 @@ export default function Login() {
                                     </>
                                 )}
 
-                                {/* Remember Me Checkbox */}
-                                <div className="form-check mb-3 mb-sm-4 text-center text-md-start">
-                                    <input
-                                        className="form-check-input bg-dark border-secondary"
-                                        type="checkbox"
-                                        id="rememberMe"
-                                        checked={rememberMe}
-                                        onChange={(e) => setRememberMe(e.target.checked)}
-                                    />
-                                    <label className="form-check-label text-white-50 small ms-1" htmlFor="rememberMe">
-                                        Keep me logged in on this device
-                                    </label>
+                                {/* Terms & Conditions & Remember Me Checkboxes (Ticked by default) */}
+                                <div className="d-flex flex-wrap align-items-center justify-content-between mb-3 mb-sm-4 gap-2">
+                                    <div className="form-check">
+                                        <input
+                                            className="form-check-input bg-dark border-secondary"
+                                            type="checkbox"
+                                            id="rememberMe"
+                                            checked={rememberMe}
+                                            onChange={(e) => setRememberMe(e.target.checked)}
+                                        />
+                                        <label className="form-check-label text-white-50 small ms-1" htmlFor="rememberMe">
+                                            Keep me logged in
+                                        </label>
+                                    </div>
+                                    <div className="form-check">
+                                        <input
+                                            className="form-check-input bg-dark border-secondary"
+                                            type="checkbox"
+                                            id="agreeTermsLogin"
+                                            checked={agreeTerms}
+                                            onChange={(e) => setAgreeTerms(e.target.checked)}
+                                        />
+                                        <label className="form-check-label text-white-50 small ms-1" htmlFor="agreeTermsLogin">
+                                            I agree to <span className="text-warning">Terms & Conditions</span>
+                                        </label>
+                                    </div>
                                 </div>
+
 
                                 {/* Social Login Divider */}
                                 <div className="auth-divider">

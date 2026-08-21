@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar';
 export default function Signup() {
     const [credentials, setcredentials] = useState({ name: "", email: "", password: "", geolocation: "", phone: "" });
     const [showPassword, setShowPassword] = useState(false);
-    const [agreeTerms, setAgreeTerms] = useState(false);
+    const [agreeTerms, setAgreeTerms] = useState(true);
     const [loading, setLoading] = useState(false);
     const [locating, setLocating] = useState(false);
     const [error, setError] = useState(null);
