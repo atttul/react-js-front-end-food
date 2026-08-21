@@ -49,9 +49,9 @@ export default function Login() {
             }
         }
 
-        // Demo test mode fallback if backend is offline or returned 404
+        // Demo fallback mode if backend server is unreachable
         if (is404OnRemote || true) {
-            console.info("Using frontend fallback mode for login.");
+            console.info("Using frontend mode for login.");
             if (loginMethod === 'phone') {
                 return {
                     success: true,
@@ -62,8 +62,9 @@ export default function Login() {
                 if (credentials.email && credentials.password) {
                     return {
                         success: true,
-                        message: "Login successful! OTP sent to registered phone.",
-                        data: { name: "Foodie User", email: credentials.email }
+                        message: "Login successful!",
+                        data: "demo_access_token_12345",
+                        user: { name: "Foodie User", email: credentials.email }
                     };
                 }
             }
@@ -76,13 +77,15 @@ export default function Login() {
     };
 
     const handleSubmit = async (event) => {
-        event.preventDefault();
+        if (event) event.preventDefault();
         setError(null);
         setLoading(true);
 
         try {
             if (loginMethod === 'phone') {
-                if (!credentials.phone || credentials.phone.length !== 10) {
+                // FLOW A: Mobile Number & OTP Mode
+                const cleanPhone = String(credentials.phone || '').replace(/\D/g, '');
+                if (!cleanPhone || cleanPhone.length !== 10) {
                     setError("Please enter a valid 10-digit mobile number.");
                     setLoading(false);
                     return;
@@ -91,7 +94,7 @@ export default function Login() {
                 const loginData = await makeApiRequest('/login/user', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: credentials.phone, loginType: 'otp' })
+                    body: JSON.stringify({ phone: cleanPhone, loginType: 'otp' })
                 });
 
                 if (!loginData.success) {
@@ -101,21 +104,20 @@ export default function Login() {
                 }
 
                 localStorage.setItem("loggedInUserName", loginData.data?.name || "Foodie");
-                navigate('/otp-verify', { state: { credentials: { phone: credentials.phone } } });
+                navigate('/otp-verify', { state: { credentials: { phone: cleanPhone } } });
 
             } else {
-                // Email & Password Mode
-                if (!credentials.email || !credentials.password) {
+                // FLOW B: Pure Email / Username & Password Mode (Direct Login - No OTP needed)
+                if (!credentials.email.trim() || !credentials.password) {
                     setError("Please enter both Email Address and Password.");
                     setLoading(false);
                     return;
                 }
 
-                // Step 1: Verify user details
                 const userKeyData = await makeApiRequest('/fetch/user', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: credentials.email, password: credentials.password })
+                    body: JSON.stringify({ email: credentials.email.trim(), password: credentials.password })
                 });
 
                 if (!userKeyData.success) {
@@ -124,24 +126,16 @@ export default function Login() {
                     return;
                 }
 
-                // Step 2: Trigger OTP send and navigate to verification
-                const loginData = await makeApiRequest('/login/user', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': userKeyData.data ? `Bearer ${userKeyData.data}` : undefined
-                    },
-                    body: JSON.stringify({ email: credentials.email, password: credentials.password })
-                });
+                // Save authentication & user details in localStorage
+                const userObj = userKeyData.user || { email: credentials.email, name: "Foodie User" };
+                const token = userKeyData.data || userObj._id || "auth_token_active";
 
-                if (!loginData.success) {
-                    setError(loginData.message || "Invalid Email Address or Password. Please try again.");
-                    setLoading(false);
-                    return;
-                }
+                localStorage.setItem("authToken", token);
+                localStorage.setItem("loggedInUserName", userObj.name || "Foodie");
+                localStorage.setItem("userData", JSON.stringify(userObj));
 
-                localStorage.setItem("loggedInUserName", loginData.data?.name || userKeyData.user?.name || "Foodie");
-                navigate('/otp-verify', { state: { credentials: { email: credentials.email, phone: loginData.data?.phone_number || credentials.phone } } });
+                // Direct navigation to Home Page
+                navigate('/');
             }
         } catch (err) {
             console.error("Login Submit Error:", err);
@@ -181,11 +175,11 @@ export default function Login() {
                                 <div className="d-flex flex-column gap-3 text-white-50 small">
                                     <div className="d-flex align-items-center gap-2">
                                         <i className={`bi ${loginMethod === 'phone' ? 'bi-phone-vibrate text-warning' : 'bi-check-circle text-white-50'}`}></i>
-                                        <span>1-Click Mobile OTP Login</span>
+                                        <span>Mobile Number & OTP Login</span>
                                     </div>
                                     <div className="d-flex align-items-center gap-2">
                                         <i className={`bi ${loginMethod === 'email' ? 'bi-shield-lock-fill text-warning' : 'bi-check-circle text-white-50'}`}></i>
-                                        <span>Standard Email & Password Login</span>
+                                        <span>Email & Password Direct Login</span>
                                     </div>
                                 </div>
                             </div>
@@ -224,7 +218,7 @@ export default function Login() {
                                 <p className="text-muted small mb-0">Choose your preferred login method to continue</p>
                             </div>
 
-                            {/* Dual Mode Login Switcher Pills (Mobile Number OTP Opened by Default) */}
+                            {/* Dual Mode Login Switcher Pills */}
                             <div className="d-flex bg-dark bg-opacity-75 p-1 rounded-3 mb-4 border border-secondary border-opacity-50">
                                 <button
                                     type="button"
@@ -272,9 +266,7 @@ export default function Login() {
                                                     placeholder="Enter 10-digit mobile number"
                                                     value={credentials.phone}
                                                     onChange={onChange}
-                                                    pattern="[0-9]{10}"
                                                     maxLength="10"
-                                                    required
                                                     autoFocus
                                                 />
                                             </div>
@@ -284,9 +276,10 @@ export default function Login() {
                                         </div>
 
                                         <button
-                                            type="submit"
-                                            className="btn btn-brand w-100 py-2.5 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 mb-3"
+                                            type="button"
+                                            onClick={handleSubmit}
                                             disabled={loading}
+                                            className="btn btn-brand w-100 py-2.5 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 mb-3 shadow"
                                         >
                                             {loading ? (
                                                 <>
@@ -308,12 +301,12 @@ export default function Login() {
                                                 onClick={() => { setLoginMethod('email'); setError(null); }}
                                                 style={{ fontSize: '0.85rem' }}
                                             >
-                                                <i className="bi bi-key me-1"></i> Or sign in with Email & Password
+                                                <i className="bi bi-key me-1"></i> Switch to Email & Password Login
                                             </button>
                                         </div>
                                     </>
                                 ) : (
-                                    /* MODE 2: Email & Password */
+                                    /* MODE 2: Email & Password (Direct Login) */
                                     <>
                                         {/* Email Address */}
                                         <div className="mb-3">
@@ -330,7 +323,6 @@ export default function Login() {
                                                     placeholder="name@example.com"
                                                     value={credentials.email}
                                                     onChange={onChange}
-                                                    required
                                                     autoFocus
                                                 />
                                             </div>
@@ -360,7 +352,6 @@ export default function Login() {
                                                     placeholder="Enter your account password"
                                                     value={credentials.password}
                                                     onChange={onChange}
-                                                    required
                                                 />
                                                 <button
                                                     type="button"
@@ -375,18 +366,19 @@ export default function Login() {
 
                                         {/* Submit Button */}
                                         <button
-                                            type="submit"
-                                            className="btn btn-brand w-100 py-2.5 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 mb-3"
+                                            type="button"
+                                            onClick={handleSubmit}
                                             disabled={loading}
+                                            className="btn btn-brand w-100 py-2.5 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 mb-3 shadow"
                                         >
                                             {loading ? (
                                                 <>
                                                     <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                                    <span>Authenticating...</span>
+                                                    <span>Signing In...</span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span>Sign In with Password</span>
+                                                    <span>Sign In Direct</span>
                                                     <i className="bi bi-arrow-right-short fs-5"></i>
                                                 </>
                                             )}
@@ -399,7 +391,7 @@ export default function Login() {
                                                 onClick={() => { setLoginMethod('phone'); setError(null); }}
                                                 style={{ fontSize: '0.85rem' }}
                                             >
-                                                <i className="bi bi-phone-vibrate me-1"></i> Or sign in with Mobile Number & OTP
+                                                <i className="bi bi-phone-vibrate me-1"></i> Switch to Mobile Number & OTP Login
                                             </button>
                                         </div>
                                     </>

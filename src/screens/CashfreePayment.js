@@ -25,7 +25,7 @@ const CashfreePaymentForm = () => {
         amount: initialAmount,
         name: initialUserData.name || localStorage.getItem("loggedInUserName") || '',
         address: initialUserData.location || '',
-        phone: initialUserData.phone_number || ''
+        phone: initialUserData.phone_number ? String(initialUserData.phone_number) : ''
     });
 
     const envMode = process.env.REACT_APP_CASHFREE_ENVIRONMENT || 'sandbox';
@@ -58,17 +58,21 @@ const CashfreePaymentForm = () => {
         if (e) e.preventDefault();
         setErrorMsg('');
 
-        if (!form.name.trim()) {
+        const cleanPhone = String(form.phone || '').replace(/\D/g, '');
+        const cleanName = String(form.name || '').trim();
+        const cleanAddress = String(form.address || '').trim();
+
+        if (!cleanName) {
             setErrorMsg('Please enter your full name for delivery.');
             return;
         }
 
-        if (!form.address.trim()) {
-            setErrorMsg('Please enter your complete delivery street address.');
+        if (!cleanAddress) {
+            setErrorMsg('Please enter your complete delivery address.');
             return;
         }
 
-        if (!form.phone.trim() || form.phone.trim().length !== 10) {
+        if (!cleanPhone || cleanPhone.length !== 10) {
             setErrorMsg('Please enter a valid 10-digit mobile number.');
             return;
         }
@@ -77,8 +81,10 @@ const CashfreePaymentForm = () => {
 
         try {
             const userId = initialUserData._id || `user_${Math.floor(100000 + Math.random() * 900000)}`;
-            const userEmail = initialUserData.email || `${form.phone.trim()}@gmail.com`;
+            const userEmail = initialUserData.email || `${cleanPhone}@gmail.com`;
             const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
+
+            console.log("Initiating payment request to:", `${baseUrl}/create/cashfree/order`);
 
             // Step 1: Create Cashfree Order Session on Backend
             const res = await fetch(`${baseUrl}/create/cashfree/order`, {
@@ -86,24 +92,25 @@ const CashfreePaymentForm = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: userId,
-                    orderAmount: form.amount,
-                    customerName: form.name.trim(),
+                    orderAmount: Number(form.amount) || 250,
+                    customerName: cleanName,
                     customerId: `cust_mern${Math.floor(100000 + Math.random() * 900000)}`,
                     customerEmail: userEmail,
-                    customerPhone: form.phone.trim(),
-                    orderAddress: form.address.trim()
+                    customerPhone: cleanPhone,
+                    orderAddress: cleanAddress
                 })
             });
 
             const data = await res.json();
+            console.log("Cashfree Order API Response:", data);
 
             if (!res.ok || !data || !data.sessionId) {
-                setErrorMsg(data?.message || "Failed to generate Cashfree payment session. Please check your details.");
+                setErrorMsg(data?.message || "Failed to generate Cashfree payment session. Please check details.");
                 setLoading(false);
                 return;
             }
 
-            // Finalize order & clear cart only upon payment initiation
+            // Sync cart items to backend if pending
             const pendingCartItemsStr = localStorage.getItem("pendingCartItems");
             if (pendingCartItemsStr) {
                 try {
@@ -125,7 +132,7 @@ const CashfreePaymentForm = () => {
                     });
                     localStorage.removeItem("pendingCartItems");
                 } catch (e) {
-                    console.error("Order creation sync error:", e);
+                    console.error("Order creation sync info:", e);
                 }
             }
 
@@ -255,7 +262,6 @@ const CashfreePaymentForm = () => {
                                             placeholder="Enter your full name" 
                                             value={form.name} 
                                             onChange={handleChange} 
-                                            required 
                                         />
                                     </div>
                                 </div>
@@ -275,7 +281,6 @@ const CashfreePaymentForm = () => {
                                             placeholder="House No., Street Name, Area, City" 
                                             value={form.address} 
                                             onChange={handleChange} 
-                                            required 
                                         />
                                     </div>
                                 </div>
@@ -295,9 +300,7 @@ const CashfreePaymentForm = () => {
                                             placeholder="10-digit mobile number" 
                                             value={form.phone} 
                                             onChange={handleChange} 
-                                            pattern="[0-9]{10}"
                                             maxLength="10"
-                                            required 
                                         />
                                     </div>
                                 </div>
@@ -310,7 +313,8 @@ const CashfreePaymentForm = () => {
 
                                 {/* Submit Payment Button */}
                                 <button 
-                                    type="submit"
+                                    type="button"
+                                    onClick={handlePay}
                                     disabled={loading} 
                                     className="btn btn-brand w-100 py-3 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 shadow mb-3"
                                 >
