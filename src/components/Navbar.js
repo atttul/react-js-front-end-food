@@ -93,7 +93,9 @@ export default function Navbar(props) {
                                         {
                                             cartView 
                                             ? (
-                                                <Modal onClose={() => setCartView(false)}><Cart /></Modal>
+                                                <Modal onClose={() => { setCartView(false); handleGetCartItems(); }}>
+                                                    <Cart onCartChange={() => handleGetCartItems()} />
+                                                </Modal>
                                             ) 
                                             : ''
                                         }

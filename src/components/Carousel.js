@@ -19,25 +19,25 @@ export default function Carousel() {
                         <img src="https://img.magnific.com/free-psd/food-menu-restaurant-facebook-cover-banner-template_120329-4875.jpg?semt=ais_test_b&w=740&q=80"
                             alt="food banner 1"
                             className="w-100"
-                            style={{ height: "380px", objectFit: "cover" }} />
+                            style={{ height: "clamp(180px, 35vw, 380px)", objectFit: "cover" }} />
                     </div>
                     <div className="carousel-item">
                         <img src="https://img.magnific.com/free-psd/food-menu-restaurant-facebook-cover-template_106176-2214.jpg?semt=ais_test_b&w=740&q=80"
                             alt="food banner 2"
                             className="w-100"
-                            style={{ height: "380px", objectFit: "cover" }} />
+                            style={{ height: "clamp(180px, 35vw, 380px)", objectFit: "cover" }} />
                     </div>
                     <div className="carousel-item">
                         <img src="https://img.magnific.com/free-psd/food-menu-restaurant-web-banner-template_106176-1459.jpg"
                             alt="food banner 3"
                             className="w-100"
-                            style={{ height: "380px", objectFit: "cover" }} />
+                            style={{ height: "clamp(180px, 35vw, 380px)", objectFit: "cover" }} />
                     </div>
                     <div className="carousel-item">
                         <img src="https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRbiMKSwByrvSYOlSjrCyDiiRfMGpaWwVfmKiH1kFCJg0SARXQq"
                             alt="food banner 4"
                             className="w-100"
-                            style={{ height: "380px", objectFit: "cover" }} />
+                            style={{ height: "clamp(180px, 35vw, 380px)", objectFit: "cover" }} />
                     </div>
                 </div>
                 <button className="carousel-control-prev" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="prev" style={{ zIndex: 3 }}>
