@@ -208,9 +208,11 @@ export default function Cart(props) {
             },
             body: JSON.stringify(requestBody)
         });
+        localStorage.setItem("lastCartTotal", totalPrice);
         navigate('/cashfree-payment', { state: { amount: totalPrice } });
         handleGetCartItems();
     };
+
 
     return (
         <div className="py-2">
