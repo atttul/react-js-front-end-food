@@ -1,36 +1,21 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 export default function Signup() {
     const [credentials, setcredentials] = useState({ name: "", email: "", password: "", geolocation: "", phone: "" });
     const [showPassword, setShowPassword] = useState(false);
-    const [agreeTerms, setAgreeTerms] = useState(true);
+    const [agreeTerms, setAgreeTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [locating, setLocating] = useState(false);
     const [error, setError] = useState(null);
+    const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
+    
     let navigate = useNavigate();
-
-    // Password strength evaluator
-    const getPasswordStrength = (pass) => {
-        if (!pass) return { score: 0, label: '', color: 'bg-secondary', width: '0%' };
-        let score = 0;
-        if (pass.length >= 6) score++;
-        if (pass.length >= 10) score++;
-        if (/[A-Z]/.test(pass)) score++;
-        if (/[0-9]/.test(pass)) score++;
-        if (/[^A-Za-z0-9]/.test(pass)) score++;
-
-        if (score <= 2) return { score: 1, label: 'Weak', color: 'bg-danger', width: '33%' };
-        if (score <= 4) return { score: 2, label: 'Medium', color: 'bg-warning', width: '66%' };
-        return { score: 3, label: 'Strong', color: 'bg-success', width: '100%' };
-    };
-
-    const passStrength = getPasswordStrength(credentials.password);
 
     const handleDetectLocation = () => {
         if (!navigator.geolocation) {
-            setError("Geolocation is not supported by your browser.");
+            setError("Geolocation is not supported by your browser. Please type your delivery address.");
             return;
         }
 
@@ -41,12 +26,14 @@ export default function Signup() {
             async (position) => {
                 const { latitude, longitude } = position.coords;
                 try {
-                    // Reverse geocoding via OpenStreetMap Nominatim API
-                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                    );
                     const data = await response.json();
-                    const detectedAddress = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                    const detectedAddress = data.display_name || `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`;
                     setcredentials((prev) => ({ ...prev, geolocation: detectedAddress }));
                 } catch (err) {
+                    console.error("Reverse geocoding error:", err);
                     setcredentials((prev) => ({ ...prev, geolocation: `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}` }));
                 } finally {
                     setLocating(false);
@@ -61,6 +48,30 @@ export default function Signup() {
         );
     };
 
+    const makeApiRequest = async (endpoint, options) => {
+        const localUrl = 'http://localhost:5000/api';
+        const remoteUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
+        const urlsToTry = [localUrl, remoteUrl];
+
+        for (const baseUrl of urlsToTry) {
+            try {
+                const cleanBase = baseUrl.replace(/\/$/, '');
+                const res = await fetch(`${cleanBase}${endpoint}`, options);
+                const contentType = res.headers.get("content-type");
+                if (res.ok && contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    return data;
+                } else if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    if (data && data.message) return data;
+                }
+            } catch (err) {
+                console.warn(`Connection attempt to ${baseUrl} failed:`, err);
+            }
+        }
+        return null;
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         
@@ -70,14 +81,13 @@ export default function Signup() {
         }
 
         setError(null);
+        setIsAlreadyRegistered(false);
         setLoading(true);
 
         try {
-            let response = await fetch(`${process.env.REACT_APP_BASE_URL}/create/user`, {
+            const data = await makeApiRequest('/create/user', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: credentials.name,
                     email: credentials.email,
@@ -86,10 +96,11 @@ export default function Signup() {
                     phone: credentials.phone
                 })
             });
-            const data = await response.json();
 
-            if (!data.success) {
-                setError(data.message || 'User already exists in the database. Please use a different email or phone number.');
+            if (!data || !data.success) {
+                const isDup = data?.alreadyExists || (data?.message && (data.message.includes('already exists') || data.message.includes('E11000') || data.message.includes('duplicate')));
+                setIsAlreadyRegistered(!!isDup);
+                setError(data?.message || 'An account with this Email Address or Mobile Number already exists. If you forgot your password, please use the Forgot Password link to reset it.');
             } else {
                 navigate('/login');
             }
@@ -177,17 +188,31 @@ export default function Signup() {
                                 <p className="text-muted small mb-0">Get started in under 60 seconds</p>
                             </div>
 
-                            {/* Alert Banner */}
+                            {/* Alert Banner with Interactive Forgot Password & Login Links */}
                             {error && (
-                                <div className="alert auth-error-alert alert-dismissible fade show p-3 mb-3 mb-sm-4 text-start w-100" role="alert">
-                                    <div className="d-flex align-items-start gap-2">
-                                        <i className="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0 mt-0.5"></i>
-                                        <div className="small fw-medium">{error}</div>
+                                <div className="alert auth-error-alert alert-dismissible fade show p-3 mb-3 mb-sm-4 text-start w-100 shadow" role="alert">
+                                    <div className="d-flex align-items-start gap-2 mb-1">
+                                        <i className="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0 mt-0.5 text-warning"></i>
+                                        <div className="small fw-semibold leading-relaxed text-white">{error}</div>
                                     </div>
-                                    <button type="button" className="btn-close btn-close-white" onClick={() => setError(null)}></button>
+                                    
+                                    {isAlreadyRegistered && (
+                                        <div className="pt-2.5 mt-2 border-top border-secondary border-opacity-40 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                                            <span className="extra-small text-white-50">Already have an account?</span>
+                                            <div className="d-flex gap-2">
+                                                <Link to="/forgot-password" className="btn btn-sm btn-outline-warning text-white fw-bold rounded-pill px-3 py-1 extra-small">
+                                                    <i className="bi bi-key-fill me-1"></i> Forgot Password?
+                                                </Link>
+                                                <Link to="/login" className="btn btn-sm btn-brand text-dark fw-bold rounded-pill px-3 py-1 extra-small">
+                                                    <i className="bi bi-box-arrow-in-right me-1"></i> Log In
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    <button type="button" className="btn-close btn-close-white" onClick={() => { setError(null); setIsAlreadyRegistered(false); }}></button>
                                 </div>
                             )}
-
 
                             <form onSubmit={handleSubmit}>
                                 <div className="row g-2 g-sm-3">
@@ -214,7 +239,7 @@ export default function Signup() {
                                     {/* Phone Number */}
                                     <div className="col-12 col-sm-6">
                                         <label htmlFor="phone" className="form-label text-white-50 fw-semibold small">
-                                            Phone Number
+                                            Mobile Number
                                         </label>
                                         <div className="input-group auth-input-group">
                                             <span className="input-group-text"><i className="bi bi-telephone"></i></span>
@@ -223,10 +248,9 @@ export default function Signup() {
                                                 className="form-control"
                                                 id="phone"
                                                 name="phone"
-                                                placeholder="10-digit mobile"
+                                                placeholder="10-digit phone"
                                                 value={credentials.phone}
                                                 onChange={onChange}
-                                                pattern="[0-9]{10}"
                                                 maxLength="10"
                                                 required
                                             />
@@ -253,19 +277,19 @@ export default function Signup() {
                                         </div>
                                     </div>
 
-                                    {/* Password with Strength Indicator */}
+                                    {/* Password */}
                                     <div className="col-12">
                                         <label htmlFor="password" className="form-label text-white-50 fw-semibold small">
                                             Password
                                         </label>
                                         <div className="input-group auth-input-group">
-                                            <span className="input-group-text"><i className="bi bi-shield-lock"></i></span>
+                                            <span className="input-group-text"><i className="bi bi-lock"></i></span>
                                             <input
                                                 type={showPassword ? "text" : "password"}
                                                 className="form-control"
                                                 id="password"
                                                 name="password"
-                                                placeholder="Create a strong password"
+                                                placeholder="At least 6 characters"
                                                 value={credentials.password}
                                                 onChange={onChange}
                                                 required
@@ -277,76 +301,48 @@ export default function Signup() {
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 title={showPassword ? "Hide Password" : "Show Password"}
                                             >
-                                                <i className={`bi ${showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'}`}></i>
+                                                <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                                             </button>
                                         </div>
-                                        {/* Password Strength Meter */}
-                                        {credentials.password.length > 0 && (
-                                            <div className="mt-2">
-                                                <div className="d-flex justify-content-between align-items-center mb-1">
-                                                    <span className="text-white-50 extra-small" style={{ fontSize: '0.75rem' }}>Strength</span>
-                                                    <span className={`extra-small fw-semibold ${passStrength.score === 1 ? 'text-danger' : passStrength.score === 2 ? 'text-warning' : 'text-success'}`} style={{ fontSize: '0.75rem' }}>
-                                                        {passStrength.label}
-                                                    </span>
-                                                </div>
-                                                <div className="progress bg-dark" style={{ height: '4px' }}>
-                                                    <div
-                                                        className={`progress-bar ${passStrength.color} password-strength-bar`}
-                                                        role="progressbar"
-                                                        style={{ width: passStrength.width }}
-                                                        aria-valuenow={passStrength.score}
-                                                        aria-valuemin="0"
-                                                        aria-valuemax="3"
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
 
-                                    {/* Delivery Address with Detect Location */}
+                                    {/* Address / Location */}
                                     <div className="col-12">
-                                        <div className="d-flex flex-wrap justify-content-between align-items-center gap-1 mb-1">
-                                            <label htmlFor="geolocation" className="form-label text-white-50 fw-semibold small mb-0">
-                                                Delivery Address
-                                            </label>
-                                            <button
-                                                type="button"
-                                                className="btn btn-link text-warning p-0 text-decoration-none extra-small d-flex align-items-center gap-1"
-                                                onClick={handleDetectLocation}
-                                                disabled={locating}
-                                                style={{ fontSize: '0.8rem' }}
-                                            >
-                                                {locating ? (
-                                                    <>
-                                                        <span className="spinner-border spinner-border-sm" style={{ width: '0.8rem', height: '0.8rem' }}></span>
-                                                        <span>Detecting...</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <i className="bi bi-geo-alt-fill"></i>
-                                                        <span>Detect GPS Location</span>
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
+                                        <label htmlFor="geolocation" className="form-label text-white-50 fw-semibold small">
+                                            Delivery Location / Address
+                                        </label>
                                         <div className="input-group auth-input-group">
-                                            <span className="input-group-text"><i className="bi bi-house-door"></i></span>
+                                            <span className="input-group-text"><i className="bi bi-geo-alt"></i></span>
                                             <input
                                                 type="text"
                                                 className="form-control"
                                                 id="geolocation"
                                                 name="geolocation"
-                                                placeholder="House/Flat No., Street, Area, City"
+                                                placeholder="Click detect or type address..."
                                                 value={credentials.geolocation}
                                                 onChange={onChange}
                                                 required
                                             />
+                                            <button
+                                                type="button"
+                                                className="btn btn-outline-warning input-group-text px-3 fw-bold extra-small"
+                                                onClick={handleDetectLocation}
+                                                disabled={locating}
+                                            >
+                                                {locating ? (
+                                                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                ) : (
+                                                    <>
+                                                        <i className="bi bi-crosshair me-1"></i> Detect GPS
+                                                    </>
+                                                )}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Terms Checkbox */}
-                                <div className="form-check mt-3 mb-3 mb-sm-4">
+                                {/* Terms & Conditions */}
+                                <div className="form-check my-3">
                                     <input
                                         className="form-check-input bg-dark border-secondary"
                                         type="checkbox"
@@ -354,16 +350,16 @@ export default function Signup() {
                                         checked={agreeTerms}
                                         onChange={(e) => setAgreeTerms(e.target.checked)}
                                     />
-                                    <label className="form-check-label text-white-50 small" htmlFor="agreeTerms">
-                                        I agree to Mern Dine's <a href="#terms" className="text-warning text-decoration-none" onClick={(e) => { e.preventDefault(); setError("Terms & Privacy Policy: We respect your privacy and protect your personal credentials."); }}>Terms of Service</a> & <a href="#privacy" className="text-warning text-decoration-none" onClick={(e) => { e.preventDefault(); setError("Privacy Policy: Your data is safely encrypted and used exclusively for order fulfilling."); }}>Privacy Policy</a>.
+                                    <label className="form-check-label text-white-50 small ms-1" htmlFor="agreeTerms">
+                                        I agree to Mern Dine's <Link to="#" className="text-warning text-decoration-none">Terms of Service</Link> & <Link to="#" className="text-warning text-decoration-none">Privacy Policy</Link>
                                     </label>
                                 </div>
 
                                 {/* Submit Button */}
                                 <button
                                     type="submit"
-                                    className="btn btn-brand w-100 py-2.5 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 mb-3"
                                     disabled={loading}
+                                    className="btn btn-brand w-100 py-2.5 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 mb-3 shadow"
                                 >
                                     {loading ? (
                                         <>
@@ -372,19 +368,19 @@ export default function Signup() {
                                         </>
                                     ) : (
                                         <>
-                                            <span>Create Account Now</span>
+                                            <span>Create Account</span>
                                             <i className="bi bi-arrow-right-short fs-5"></i>
                                         </>
                                     )}
                                 </button>
 
-                                {/* Social Login Divider */}
+                                {/* Social Signup Divider */}
                                 <div className="auth-divider">
                                     <span>or sign up with</span>
                                 </div>
 
                                 {/* Social Buttons */}
-                                <div className="row g-2 mb-3 mb-sm-4">
+                                <div className="row g-2 mb-3">
                                     <div className="col-6">
                                         <button
                                             type="button"
@@ -407,11 +403,11 @@ export default function Signup() {
                                     </div>
                                 </div>
 
-                                {/* Bottom Link */}
+                                {/* Bottom Log In Link */}
                                 <div className="text-center pt-2 border-top border-secondary border-opacity-50">
-                                    <span className="text-muted small me-2">Already registered?</span>
+                                    <span className="text-muted small me-2">Already have an account?</span>
                                     <Link to='/login' className='text-warning fw-semibold text-decoration-none small'>
-                                        Log in here <i className="bi bi-chevron-right extra-small"></i>
+                                        Sign In <i className="bi bi-chevron-right extra-small"></i>
                                     </Link>
                                 </div>
                             </form>
@@ -421,8 +417,5 @@ export default function Signup() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
-
-
-
