@@ -93,7 +93,7 @@ export default function Home() {
                                 <div className="row g-4">
                                     {filteredItems.length !== 0
                                         ? filteredItems.map((filteredItem) => (
-                                                <div className="col-12 col-md-6 col-lg-4 d-flex align-items-stretch" key={filteredItem._id}>
+                                                <div className="col-12 col-sm-6 col-lg-4 col-xl-3 d-flex align-items-stretch" key={filteredItem._id}>
                                                     <Card 
                                                         foodItem={filteredItem}
                                                         options={filteredItem.options[0]}

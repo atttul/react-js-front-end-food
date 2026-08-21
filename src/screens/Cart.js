@@ -1,24 +1,58 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 
-export default function Cart() {
+export default function Cart(props) {
     const [getCartItems, setGetCartItems] = useState([]);
     const navigate = useNavigate();
 
+    // Helper to preserve exact item positions across backend re-fetches
+    const preserveItemOrder = (newFetchedItems, currentItems) => {
+        if (!currentItems || currentItems.length === 0) return newFetchedItems;
+
+        const indexMap = new Map();
+        currentItems.forEach((item, idx) => {
+            const key = `${item.product_name}_${item.size}`;
+            if (!indexMap.has(key)) {
+                indexMap.set(key, idx);
+            }
+        });
+
+        return [...newFetchedItems].sort((a, b) => {
+            const keyA = `${a.product_name}_${a.size}`;
+            const keyB = `${b.product_name}_${b.size}`;
+            const posA = indexMap.has(keyA) ? indexMap.get(keyA) : 9999;
+            const posB = indexMap.has(keyB) ? indexMap.get(keyB) : 9999;
+            return posA - posB;
+        });
+    };
+
     const handleGetCartItems = async () => {
-        let cartItems = await fetch(`${process.env.REACT_APP_BASE_URL}/fetch/cart/items`, {
-            method: 'GET',
-            headers: {
-                "authorization": `Bearer ${localStorage.getItem("authToken")}`,
-                'Content-Type': 'application/json',
-            },
-        })
-        cartItems = await cartItems.json();
-        setGetCartItems(cartItems.data || [])
+        try {
+            let res = await fetch(`${process.env.REACT_APP_BASE_URL}/fetch/cart/items`, {
+                method: 'GET',
+                headers: {
+                    "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+            let cartItems = await res.json();
+            const rawItems = cartItems.data || [];
+
+            setGetCartItems(prevItems => {
+                const orderedItems = preserveItemOrder(rawItems, prevItems);
+                if (props.onCartChange) {
+                    props.onCartChange(orderedItems);
+                }
+                return orderedItems;
+            });
+        } catch (error) {
+            console.error("Error fetching cart items:", error);
+        }
     }
 
     useEffect(() => {
         handleGetCartItems()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     if (!getCartItems || getCartItems.length === 0) {
@@ -36,16 +70,107 @@ export default function Cart() {
     let totalPrice = getCartItems.reduce((total, food) => total + food.total_amount, 0)
 
     const handleDeleteCartItem = async (name) => {
-        await fetch(`${process.env.REACT_APP_BASE_URL}/delete/cart/item`, {
-            method: 'DELETE',
-            headers: {
-                "authorization": `Bearer ${localStorage.getItem("authToken")}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name: name })
-        })
-        handleGetCartItems()
+        // Optimistic local state update
+        setGetCartItems(prevItems => prevItems.filter(item => item.product_name !== name));
+
+        try {
+            await fetch(`${process.env.REACT_APP_BASE_URL}/delete/cart/item`, {
+                method: 'DELETE',
+                headers: {
+                    "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: name })
+            })
+            await handleGetCartItems()
+        } catch (error) {
+            console.error("Error deleting cart item:", error);
+            handleGetCartItems()
+        }
     }
+
+    const handleIncreaseQuantity = async (food) => {
+        const newQty = food.quantity + 1;
+        const unitPrice = food.quantity > 0 ? (food.total_amount / food.quantity) : food.total_amount;
+
+        // Optimistic local state update in exact position
+        setGetCartItems(prevItems =>
+            prevItems.map(item =>
+                (item.product_name === food.product_name && item.size === food.size)
+                    ? { ...item, quantity: newQty, total_amount: unitPrice * newQty }
+                    : item
+            )
+        );
+
+        try {
+            await fetch(`${process.env.REACT_APP_BASE_URL}/delete/cart/item`, {
+                method: 'DELETE',
+                headers: {
+                    "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: food.product_name })
+            });
+
+            await fetch(`${process.env.REACT_APP_BASE_URL}/add/cart/item`, {
+                method: 'POST',
+                headers: {
+                    "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: food.product_name, qty: newQty, size: food.size })
+            });
+
+            await handleGetCartItems();
+        } catch (error) {
+            console.error("Error increasing cart item quantity:", error);
+            handleGetCartItems();
+        }
+    };
+
+    const handleDecreaseQuantity = async (food) => {
+        if (food.quantity <= 1) {
+            handleDeleteCartItem(food.product_name);
+            return;
+        }
+
+        const newQty = food.quantity - 1;
+        const unitPrice = food.quantity > 0 ? (food.total_amount / food.quantity) : food.total_amount;
+
+        // Optimistic local state update in exact position
+        setGetCartItems(prevItems =>
+            prevItems.map(item =>
+                (item.product_name === food.product_name && item.size === food.size)
+                    ? { ...item, quantity: newQty, total_amount: unitPrice * newQty }
+                    : item
+            )
+        );
+
+        try {
+            await fetch(`${process.env.REACT_APP_BASE_URL}/delete/cart/item`, {
+                method: 'DELETE',
+                headers: {
+                    "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: food.product_name })
+            });
+
+            await fetch(`${process.env.REACT_APP_BASE_URL}/add/cart/item`, {
+                method: 'POST',
+                headers: {
+                    "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: food.product_name, qty: newQty, size: food.size })
+            });
+
+            await handleGetCartItems();
+        } catch (error) {
+            console.error("Error decreasing cart item quantity:", error);
+            handleGetCartItems();
+        }
+    };
 
     const handleOrderCreate = async (getCartItems) => {
         let requestBody = []
@@ -98,13 +223,33 @@ export default function Cart() {
                     <tbody>
                         {
                             getCartItems.map((food, index) => (
-                                <tr key={index}>
+                                <tr key={food._id || `${food.product_name}_${food.size}`}>
                                     <th scope="row" className="px-3 text-muted">{index + 1}</th>
                                     <td className="fw-semibold text-white">{food.product_name}</td>
                                     <td className="text-center">
-                                        <span className="badge bg-dark border border-secondary px-3 py-1">
-                                            {food.quantity}
-                                        </span>
+                                        <div className="d-inline-flex align-items-center justify-content-center border border-secondary rounded-pill p-1 bg-dark gap-2">
+                                            <button 
+                                                type="button" 
+                                                className="btn btn-sm btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center"
+                                                style={{ width: '26px', height: '26px' }}
+                                                title="Decrease quantity"
+                                                onClick={() => handleDecreaseQuantity(food)}
+                                            >
+                                                <i className="bi bi-dash-lg"></i>
+                                            </button>
+                                            <span className="fw-bold px-2 text-white" style={{ minWidth: '24px', textAlign: 'center' }}>
+                                                {food.quantity}
+                                            </span>
+                                            <button 
+                                                type="button" 
+                                                className="btn btn-sm btn-outline-success rounded-circle p-0 d-flex align-items-center justify-content-center"
+                                                style={{ width: '26px', height: '26px' }}
+                                                title="Increase quantity"
+                                                onClick={() => handleIncreaseQuantity(food)}
+                                            >
+                                                <i className="bi bi-plus-lg"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                     <td className="text-center text-info font-monospace">{food.size}</td>
                                     <td className="text-end fw-bold text-warning">₹{food.total_amount}/-</td>
@@ -113,7 +258,7 @@ export default function Cart() {
                                             type="button" 
                                             className="btn btn-outline-danger btn-sm rounded-circle p-2 d-inline-flex align-items-center justify-content-center"
                                             title="Delete item"
-                                            onClick={() => {handleDeleteCartItem(food.product_name);}}
+                                            onClick={() => handleDeleteCartItem(food.product_name)}
                                             style={{ width: '36px', height: '36px' }}
                                         >
                                             <i className="bi bi-trash3-fill"></i>
