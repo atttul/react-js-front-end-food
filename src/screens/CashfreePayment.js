@@ -1,20 +1,38 @@
 import { load } from '@cashfreepayments/cashfree-js';
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const CashfreePaymentForm = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    
+    // Pre-fill user data from localStorage if available
+    let initialUserData = {};
+    try {
+        initialUserData = JSON.parse(localStorage.getItem("userData") || "{}");
+    } catch (err) {
+        console.error("Failed to parse userData", err);
+    }
+
     const [form, setForm] = useState({
         amount: location.state?.amount || 0,
-        name: '',
-        address: '',
-        phone: ''
+        name: initialUserData.name || localStorage.getItem("loggedInUserName") || '',
+        address: initialUserData.location || '',
+        phone: initialUserData.phone_number || ''
     });
-    const [envMode, setEnvMode] = useState(process.env.REACT_APP_CASHFREE_ENVIRONMENT || 'sandbox');
+
+    // Internal environment mode read silently from process.env (Hidden from customer UI)
+    const envMode = process.env.REACT_APP_CASHFREE_ENVIRONMENT || 'sandbox';
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+
+    useEffect(() => {
+        if (!location.state?.amount && form.amount === 0) {
+            // Optional fallback if user opened page directly without cart amount
+        }
+    }, [location.state, form.amount]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,28 +42,26 @@ const CashfreePaymentForm = () => {
         if (e) e.preventDefault();
         setErrorMsg('');
 
-        if (!form.name.trim() || !form.address.trim() || !form.phone.trim()) {
-            setErrorMsg('Please fill in all delivery details before proceeding.');
+        if (!form.name.trim()) {
+            setErrorMsg('Please enter your full name for delivery.');
             return;
         }
 
-        if (form.phone.trim().length !== 10) {
-            setErrorMsg('Please enter a valid 10-digit phone number.');
+        if (!form.address.trim()) {
+            setErrorMsg('Please enter your complete delivery street address.');
+            return;
+        }
+
+        if (!form.phone.trim() || form.phone.trim().length !== 10) {
+            setErrorMsg('Please enter a valid 10-digit mobile number.');
             return;
         }
 
         setLoading(true);
 
         try {
-            let userData = {};
-            try {
-                userData = JSON.parse(localStorage.getItem("userData") || "{}");
-            } catch (err) {
-                console.error("Failed to parse userData", err);
-            }
-
-            const userId = userData._id || `user_${Math.floor(100000 + Math.random() * 900000)}`;
-            const userEmail = userData.email || `${form.phone}@gmail.com`;
+            const userId = initialUserData._id || `user_${Math.floor(100000 + Math.random() * 900000)}`;
+            const userEmail = initialUserData.email || `${form.phone.trim()}@gmail.com`;
 
             const res = await fetch(`${process.env.REACT_APP_BASE_URL}/create/cashfree/order`, {
                 method: 'POST',
@@ -64,14 +80,13 @@ const CashfreePaymentForm = () => {
             const data = await res.json();
 
             if (!res.ok || !data || !data.sessionId) {
-                setErrorMsg(data?.message || "Failed to generate Cashfree payment session. Please try again.");
+                // If payment session creation fails (e.g. backend offline or test env), provide clean message
+                setErrorMsg(data?.message || "Failed to initialize payment gateway. Please try again.");
                 setLoading(false);
                 return;
             }
 
-            const cashfree = await load({
-                mode: envMode
-            });
+            const cashfree = await load({ mode: envMode });
 
             await cashfree.checkout({
                 paymentSessionId: data.sessionId,
@@ -79,7 +94,7 @@ const CashfreePaymentForm = () => {
             });
         } catch (err) {
             console.error("Payment error:", err);
-            setErrorMsg("Something went wrong initializing Cashfree Checkout. Try toggling SDK mode (Sandbox / Production).");
+            setErrorMsg("Payment connection failed. Please check your internet connection or try again.");
         } finally {
             setLoading(false);
         }
@@ -88,129 +103,202 @@ const CashfreePaymentForm = () => {
     return (
         <div className="d-flex flex-column min-vh-100">
             <Navbar />
-            <div className="container d-flex justify-content-center align-items-center flex-grow-1 py-5">
-                <div className="card food-card p-4 p-sm-5 shadow-lg border-0" style={{ maxWidth: '540px', width: '100%' }}>
-                    <div className="text-center mb-4">
-                        <div className="d-inline-block p-3 rounded-circle bg-dark border border-secondary mb-3 text-warning">
-                            <i className="bi bi-credit-card-2-front fs-2"></i>
-                        </div>
-                        <h3 className="fw-bold text-white mb-1">Checkout & Payment</h3>
-                        <p className="text-muted small">Enter delivery details to initiate Cashfree payment</p>
-                    </div>
+            
+            <div className="container px-2 px-sm-3 d-flex justify-content-center align-items-center flex-grow-1 py-4 py-md-5">
+                <div className="card auth-wrapper w-100 border-0 overflow-hidden shadow-lg" style={{ maxWidth: '880px' }}>
+                    <div className="row g-0">
+                        
+                        {/* Left Panel - Order Summary & Trust Badges */}
+                        <div className="col-md-5 d-none d-md-flex flex-column p-4 p-lg-5 text-white bg-dark bg-opacity-60 border-end border-secondary border-opacity-40">
+                            <div className="mb-4">
+                                <span className="auth-badge mb-3">
+                                    <i className="bi bi-shield-check"></i> Secure Checkout
+                                </span>
+                                <h3 className="fw-extrabold text-white mb-2">Order Summary</h3>
+                                <p className="text-white-50 small leading-relaxed">
+                                    Review your order total and delivery details before completing payment.
+                                </p>
+                            </div>
 
-                    {errorMsg && (
-                        <div className="alert alert-danger py-2 px-3 small rounded-3 mb-3" role="alert">
-                            <i className="bi bi-exclamation-triangle-fill me-2"></i>{errorMsg}
-                        </div>
-                    )}
-
-                    <form onSubmit={handlePay}>
-                        <div className="mb-3">
-                            <label htmlFor="name" className="form-label text-white-50 fw-semibold small">Customer Name</label>
-                            <input 
-                                type="text" 
-                                className="form-control bg-dark text-white border-secondary" 
-                                name='name' 
-                                placeholder="Full Name" 
-                                value={form.name} 
-                                onChange={handleChange} 
-                                required 
-                            />
-                        </div>
-                        <div className="mb-3">
-                            <label htmlFor="address" className="form-label text-white-50 fw-semibold small">Delivery Address</label>
-                            <input 
-                                type="text" 
-                                className="form-control bg-dark text-white border-secondary" 
-                                name='address' 
-                                placeholder="Full Street Address" 
-                                value={form.address} 
-                                onChange={handleChange} 
-                                required 
-                            />
-                        </div>
-                        <div className="mb-3">
-                            <label htmlFor="phone" className="form-label text-white-50 fw-semibold small">Phone Number</label>
-                            <input 
-                                type="tel" 
-                                className="form-control bg-dark text-white border-secondary" 
-                                name='phone' 
-                                placeholder="10 Digit Phone Number" 
-                                value={form.phone} 
-                                onChange={handleChange} 
-                                pattern="[0-9]{10}"
-                                maxLength="10"
-                                required 
-                            />
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="form-label text-white-50 fw-semibold small">Gateway Environment Mode</label>
-                            <div className="d-flex gap-3 bg-dark p-2 rounded-3 border border-secondary">
-                                <div className="form-check me-3">
-                                    <input 
-                                        className="form-check-input" 
-                                        type="radio" 
-                                        name="envMode" 
-                                        id="modeSandbox" 
-                                        value="sandbox" 
-                                        checked={envMode === 'sandbox'} 
-                                        onChange={(e) => setEnvMode(e.target.value)} 
-                                    />
-                                    <label className="form-check-label text-white small" htmlFor="modeSandbox">
-                                        Sandbox (Test)
-                                    </label>
+                            {/* Order Details Breakdown */}
+                            <div className="bg-dark p-3 rounded-3 border border-secondary mb-4">
+                                <div className="d-flex justify-content-between text-white-50 small mb-2">
+                                    <span>Items Subtotal</span>
+                                    <span className="fw-semibold text-white">₹{form.amount}/-</span>
                                 </div>
-                                <div className="form-check">
-                                    <input 
-                                        className="form-check-input" 
-                                        type="radio" 
-                                        name="envMode" 
-                                        id="modeProduction" 
-                                        value="production" 
-                                        checked={envMode === 'production'} 
-                                        onChange={(e) => setEnvMode(e.target.value)} 
-                                    />
-                                    <label className="form-check-label text-white small" htmlFor="modeProduction">
-                                        Production (Live)
-                                    </label>
+                                <div className="d-flex justify-content-between text-white-50 small mb-2">
+                                    <span>Delivery Charges</span>
+                                    <span className="text-success fw-bold">FREE</span>
+                                </div>
+                                <div className="d-flex justify-content-between text-white-50 small mb-3">
+                                    <span>Taxes & Packaging</span>
+                                    <span className="text-muted">Included</span>
+                                </div>
+                                <div className="pt-2 border-top border-secondary d-flex justify-content-between align-items-center">
+                                    <span className="fw-bold text-white fs-6">Total Amount Payable</span>
+                                    <span className="fs-4 fw-extrabold text-warning">₹{form.amount}/-</span>
                                 </div>
                             </div>
-                            <span className="text-muted extra-small mt-1 d-block" style={{ fontSize: '0.75rem' }}>
-                                Match this with your Cashfree Backend Keys environment on Vercel.
+
+                            {/* Trust & Guarantee Badges */}
+                            <div className="mt-auto pt-3 border-top border-secondary border-opacity-50">
+                                <div className="d-flex flex-column gap-2 text-white-50 small">
+                                    <div className="d-flex align-items-center gap-2">
+                                        <i className="bi bi-lock-fill text-warning fs-6"></i>
+                                        <span>256-Bit SSL Encrypted Payment</span>
+                                    </div>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <i className="bi bi-credit-card-2-front-fill text-warning fs-6"></i>
+                                        <span>Supports UPI, Debit/Credit Cards & NetBanking</span>
+                                    </div>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <i className="bi bi-arrow-counterclockwise text-warning fs-6"></i>
+                                        <span>Instant Refund Guarantee on Order Cancel</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Mobile Header Order Total Banner (< 768px) */}
+                        <div className="d-md-none text-center p-4 bg-dark bg-opacity-60 border-bottom border-secondary border-opacity-40">
+                            <span className="auth-badge mb-2">
+                                <i className="bi bi-shield-check"></i> Secure Checkout
                             </span>
+                            <h4 className="fw-bold text-white mb-1">Confirm Delivery & Pay</h4>
+                            <div className="d-inline-flex align-items-center gap-2 mt-2 px-3 py-1.5 rounded-pill bg-dark border border-warning-subtle">
+                                <span className="text-muted small">Total Payable:</span>
+                                <span className="fw-extrabold text-warning fs-5">₹{form.amount}/-</span>
+                            </div>
                         </div>
 
-                        <div className="bg-dark p-3 rounded-3 border border-secondary mb-4 d-flex align-items-center justify-content-between">
-                            <span className="text-muted font-semibold">Total Amount Payable:</span>
-                            <span className="fs-3 fw-bold text-warning">₹{form.amount}/-</span>
-                        </div>
+                        {/* Right Panel - Delivery Form */}
+                        <div className="col-md-7 p-3 p-sm-4 p-lg-5 d-flex flex-column justify-content-center">
+                            
+                            <div className="mb-4 text-center text-md-start">
+                                <h3 className="fw-bold text-white mb-1">Delivery Information</h3>
+                                <p className="text-muted small mb-0">Where should we deliver your delicious food?</p>
+                            </div>
 
-                        <button 
-                            type="submit"
-                            disabled={loading} 
-                            className="btn btn-brand w-100 py-3 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 shadow"
-                        >
-                            {loading ? (
-                                <>
-                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    Initiating Cashfree ({envMode})...
-                                </>
-                            ) : (
-                                <>
-                                    <i className="bi bi-lock-fill"></i> Pay Now with Cashfree ({envMode})
-                                </>
+                            {/* Error Alert */}
+                            {errorMsg && (
+                                <div className="alert auth-error-alert alert-dismissible fade show p-3 mb-4 text-start w-100" role="alert">
+                                    <div className="d-flex align-items-start gap-2">
+                                        <i className="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0 mt-0.5"></i>
+                                        <div className="small fw-medium">{errorMsg}</div>
+                                    </div>
+                                    <button type="button" className="btn-close btn-close-white" onClick={() => setErrorMsg('')}></button>
+                                </div>
                             )}
-                        </button>
-                    </form>
+
+                            <form onSubmit={handlePay}>
+                                
+                                {/* Full Name */}
+                                <div className="mb-3">
+                                    <label htmlFor="name" className="form-label text-white-50 fw-semibold small">
+                                        Full Name
+                                    </label>
+                                    <div className="input-group auth-input-group">
+                                        <span className="input-group-text"><i className="bi bi-person-fill text-warning"></i></span>
+                                        <input 
+                                            type="text" 
+                                            className="form-control" 
+                                            name='name' 
+                                            id='name'
+                                            placeholder="Enter your full name" 
+                                            value={form.name} 
+                                            onChange={handleChange} 
+                                            required 
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Delivery Address */}
+                                <div className="mb-3">
+                                    <label htmlFor="address" className="form-label text-white-50 fw-semibold small">
+                                        Delivery Address
+                                    </label>
+                                    <div className="input-group auth-input-group">
+                                        <span className="input-group-text"><i className="bi bi-geo-alt-fill text-warning"></i></span>
+                                        <input 
+                                            type="text" 
+                                            className="form-control" 
+                                            name='address' 
+                                            id='address'
+                                            placeholder="House No., Street Name, Area, City" 
+                                            value={form.address} 
+                                            onChange={handleChange} 
+                                            required 
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Phone Number */}
+                                <div className="mb-4">
+                                    <label htmlFor="phone" className="form-label text-white-50 fw-semibold small">
+                                        Contact Phone Number
+                                    </label>
+                                    <div className="input-group auth-input-group">
+                                        <span className="input-group-text"><i className="bi bi-telephone-fill text-warning"></i></span>
+                                        <input 
+                                            type="tel" 
+                                            className="form-control" 
+                                            name='phone' 
+                                            id='phone'
+                                            placeholder="10-digit mobile number" 
+                                            value={form.phone} 
+                                            onChange={handleChange} 
+                                            pattern="[0-9]{10}"
+                                            maxLength="10"
+                                            required 
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Mobile Only Summary Card */}
+                                <div className="d-md-none bg-dark p-3 rounded-3 border border-secondary mb-4 d-flex align-items-center justify-content-between">
+                                    <span className="text-white-50 small fw-semibold">Grand Total:</span>
+                                    <span className="fs-4 fw-bold text-warning">₹{form.amount}/-</span>
+                                </div>
+
+                                {/* Submit Payment Button */}
+                                <button 
+                                    type="submit"
+                                    disabled={loading || form.amount <= 0} 
+                                    className="btn btn-brand w-100 py-3 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 shadow mb-3"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            <span>Processing Secure Payment...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="bi bi-lock-fill fs-5"></i>
+                                            <span>Proceed to Pay ₹{form.amount}/-</span>
+                                        </>
+                                    )}
+                                </button>
+
+                                {/* Back Button */}
+                                <div className="text-center pt-2 border-top border-secondary border-opacity-50">
+                                    <button
+                                        type="button"
+                                        className="btn btn-link text-white-50 p-0 text-decoration-none extra-small"
+                                        onClick={() => navigate(-1)}
+                                    >
+                                        <i className="bi bi-arrow-left"></i> Back to Cart
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
                 </div>
             </div>
+
             <Footer />
         </div>
     );
 };
 
 export default CashfreePaymentForm;
-
-
-
