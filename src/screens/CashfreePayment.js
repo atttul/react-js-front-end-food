@@ -36,28 +36,6 @@ const CashfreePaymentForm = () => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const makeApiRequest = async (endpoint, options) => {
-        const localUrl = 'http://localhost:5000/api';
-        const remoteUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
-
-        const urlsToTry = [localUrl, remoteUrl];
-
-        for (const baseUrl of urlsToTry) {
-            try {
-                const cleanBase = baseUrl.replace(/\/$/, '');
-                const res = await fetch(`${cleanBase}${endpoint}`, options);
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.sessionId) return data;
-                }
-            } catch (err) {
-                console.warn(`Connection attempt to ${baseUrl}${endpoint} failed:`, err);
-            }
-        }
-        return null;
-    };
-
     const handlePay = async (e) => {
         if (e) e.preventDefault();
         setErrorMsg('');
@@ -82,10 +60,10 @@ const CashfreePaymentForm = () => {
         try {
             const userId = initialUserData._id || `user_${Math.floor(100000 + Math.random() * 900000)}`;
             const userEmail = initialUserData.email || `${form.phone.trim()}@gmail.com`;
-            const orderId = `order_${Date.now()}`;
+            const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
 
-            // Try real Cashfree gateway backend request
-            const data = await makeApiRequest('/create/cashfree/order', {
+            // Step 1: Create Cashfree Order on Backend
+            const res = await fetch(`${baseUrl}/create/cashfree/order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -99,35 +77,25 @@ const CashfreePaymentForm = () => {
                 })
             });
 
-            if (data && data.sessionId) {
-                try {
-                    const cashfree = await load({ mode: envMode });
-                    await cashfree.checkout({
-                        paymentSessionId: data.sessionId,
-                        redirectTarget: '_self'
-                    });
-                    return;
-                } catch (sdkErr) {
-                    console.warn("Cashfree SDK Checkout launch fallback:", sdkErr);
-                }
+            const data = await res.json();
+
+            if (!res.ok || !data || !data.sessionId) {
+                setErrorMsg(data?.message || "Failed to generate Cashfree payment session. Please try again.");
+                setLoading(false);
+                return;
             }
 
-            // Instant Payment Gateway Simulation Fallback
-            // Ensures payment button ALWAYS works smoothly even when merchant keys are not set on server
-            setTimeout(() => {
-                navigate(`/payment-success?order_id=${orderId}`, {
-                    state: {
-                        orderId: orderId,
-                        amount: form.amount,
-                        address: form.address,
-                        name: form.name
-                    }
-                });
-            }, 1000);
+            // Step 2: Load Cashfree SDK & Launch Payment Gateway
+            const cashfree = await load({ mode: envMode });
+            await cashfree.checkout({
+                paymentSessionId: data.sessionId,
+                redirectTarget: '_self'
+            });
 
         } catch (err) {
-            console.error("Payment error:", err);
-            setErrorMsg("Payment connection failed. Please check your network and try again.");
+            console.error("Cashfree Payment Checkout Error:", err);
+            setErrorMsg("Failed to launch Cashfree Payment Gateway. Please check your internet connection and try again.");
+        } finally {
             setLoading(false);
         }
     };
@@ -305,7 +273,7 @@ const CashfreePaymentForm = () => {
                                     {loading ? (
                                         <>
                                             <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                            <span>Processing Secure Payment...</span>
+                                            <span>Opening Cashfree Payment Gateway...</span>
                                         </>
                                     ) : (
                                         <>
@@ -315,11 +283,11 @@ const CashfreePaymentForm = () => {
                                     )}
                                 </button>
 
-                                {/* Back Button */}
-                                <div className="text-center pt-2 border-top border-secondary border-opacity-50">
+                                {/* Back Buttons */}
+                                <div className="d-flex align-items-center justify-content-between pt-2 border-top border-secondary border-opacity-50">
                                     <button
                                         type="button"
-                                        className="btn btn-link text-white-50 p-0 text-decoration-none extra-small me-3"
+                                        className="btn btn-link text-white-50 p-0 text-decoration-none extra-small"
                                         onClick={handleBackToCart}
                                     >
                                         <i className="bi bi-arrow-left"></i> Back to Cart
@@ -328,7 +296,7 @@ const CashfreePaymentForm = () => {
                                         to="/"
                                         className="text-warning text-decoration-none extra-small"
                                     >
-                                        <i className="bi bi-house"></i> Home Menu
+                                        <i className="bi bi-house me-1"></i> Home Menu
                                     </Link>
                                 </div>
                             </form>
