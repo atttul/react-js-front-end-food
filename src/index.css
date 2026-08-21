@@ -199,6 +199,25 @@ code {
   letter-spacing: 0.3px;
 }
 
+/* Floating View Cart Button */
+.float-cart-btn {
+  animation: floatPulse 3s infinite ease-in-out;
+}
+
+.float-cart-btn:hover {
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 12px 30px rgba(253, 86, 49, 0.75) !important;
+}
+
+@keyframes floatPulse {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
 /* Responsive Media Queries */
 @media (max-width: 768px) {
   .custom-modal-content {

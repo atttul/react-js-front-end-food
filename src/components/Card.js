@@ -27,7 +27,11 @@ export default function Card(props) {
 
         if (!addedCartItem.success) {
             alert(addedCartItem.message)
+            return;
         }
+
+        // Notify app components to update cart
+        window.dispatchEvent(new Event('cartUpdated'));
 
         // ✅ Set success message
         setSuccessMessage('Item added to cart successfully!');

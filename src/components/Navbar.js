@@ -28,6 +28,17 @@ export default function Navbar(props) {
         if (localStorage.getItem('authToken')) {
             handleGetCartItems()
         }
+
+        const handleCartUpdate = () => {
+            if (localStorage.getItem('authToken')) {
+                handleGetCartItems()
+            }
+        }
+
+        window.addEventListener('cartUpdated', handleCartUpdate);
+        return () => {
+            window.removeEventListener('cartUpdated', handleCartUpdate);
+        }
     }, [])
 
     return (
@@ -116,6 +127,37 @@ export default function Navbar(props) {
                     </div>
                 </div>
             </nav>
+
+            {/* Floating View Cart Button when items are present */}
+            {
+                localStorage.getItem('authToken') && getCartItems && getCartItems.length > 0 && !cartView && (
+                    <div 
+                        className="position-fixed bottom-0 end-0 m-3 m-sm-4" 
+                        style={{ zIndex: 1040 }}
+                    >
+                        <button
+                            type="button"
+                            className="btn btn-brand rounded-pill px-4 py-3 shadow-lg d-flex align-items-center gap-3 border border-warning float-cart-btn"
+                            onClick={() => setCartView(true)}
+                            style={{
+                                boxShadow: '0 8px 25px rgba(253, 86, 49, 0.55)',
+                                transition: 'all 0.3s ease'
+                            }}
+                        >
+                            <div className="position-relative d-flex align-items-center">
+                                <i className="bi bi-cart3 fs-4 text-white"></i>
+                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark fw-bold px-2 py-1 shadow-sm">
+                                    {getCartItems.length}
+                                </span>
+                            </div>
+                            <span className="fw-bold fs-6 text-white text-uppercase tracking-wider ms-1">View Cart</span>
+                            <span className="badge bg-dark bg-opacity-50 text-warning px-2 py-1.5 rounded-pill small fw-semibold border border-warning opacity-90">
+                                ₹{getCartItems.reduce((total, item) => total + (item.total_amount || 0), 0)}/-
+                            </span>
+                        </button>
+                    </div>
+                )
+            }
         </div>
     )
 }
