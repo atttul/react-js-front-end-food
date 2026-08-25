@@ -516,3 +516,28 @@ code {
 .cursor-pointer {
   cursor: pointer;
 }
+
+.hover-border-warning:hover {
+  border-color: rgba(253, 86, 49, 0.7) !important;
+}
+
+.hover-text-warning:hover {
+  color: #fd5631 !important;
+}
+
+.leading-none {
+  line-height: 1 !important;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(253, 86, 49, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(253, 86, 49, 0);
+  }
+}
+
+.animate-pulse {
+  animation: pulseGlow 2s infinite;
+}
