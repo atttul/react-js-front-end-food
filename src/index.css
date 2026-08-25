@@ -481,3 +481,38 @@ code {
 .auth-success-alert i {
   color: #34d399 !important;
 }
+
+/* Field Validation Visual Cues */
+.auth-input-group .form-control {
+  min-height: 46px;
+}
+
+.auth-input-group .input-group-text {
+  min-height: 46px;
+}
+
+.auth-input-group.has-error .input-group-text,
+.auth-input-group.has-error .form-control,
+.auth-input-group .form-control.is-invalid {
+  border-color: #ef4444 !important;
+}
+
+.auth-input-group.has-error .form-control:focus,
+.auth-input-group .form-control.is-invalid:focus {
+  box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25) !important;
+}
+
+.auth-input-group.has-success .input-group-text,
+.auth-input-group.has-success .form-control,
+.auth-input-group .form-control.is-valid {
+  border-color: #10b981 !important;
+}
+
+.auth-input-group.has-success .form-control:focus,
+.auth-input-group .form-control.is-valid:focus {
+  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
