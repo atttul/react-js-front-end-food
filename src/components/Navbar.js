@@ -4,14 +4,22 @@ import Cart from '../screens/Cart';
 import Modal from './Modal';
 import OrderTrackerModal from './OrderTrackerModal';
 
-export default function Navbar(props) {
+export default function Navbar() {
     const [cartView, setCartView] = useState(false);
     const [isNavExpanded, setIsNavExpanded] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const [showLocationModal, setShowLocationModal] = useState(false);
+    
     const [getCartItems, setGetCartItems] = useState([]);
     const [userProfile, setUserProfile] = useState(null);
     const [activeOrder, setActiveOrder] = useState(null);
     const [showOrderTracker, setShowOrderTracker] = useState(false);
+
+    // Location editing modal states
+    const [editLocationInput, setEditLocationInput] = useState('');
+    const [locatingGPS, setLocatingGPS] = useState(false);
+    const [locationUpdateMsg, setLocationUpdateMsg] = useState(null);
+    const [locationUpdateError, setLocationUpdateError] = useState(null);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -84,15 +92,17 @@ export default function Navbar(props) {
         const cleanBase = baseUrl.replace(/\/$/, '');
         const token = localStorage.getItem("authToken");
 
-        // 1. Load cached user profile from localStorage first for instant display
+        // 1. Load cached user profile from localStorage first
         try {
             const cachedUser = localStorage.getItem("userData");
             if (cachedUser) {
-                setUserProfile(JSON.parse(cachedUser));
+                const parsed = JSON.parse(cachedUser);
+                setUserProfile(parsed);
+                setEditLocationInput(parsed.location || '');
             }
         } catch (e) {}
 
-        // 2. Fetch fresh user profile from API
+        // 2. Fetch fresh profile from API
         try {
             const profRes = await fetch(`${cleanBase}/user/profile`, {
                 headers: { "authorization": `Bearer ${token}` }
@@ -101,6 +111,7 @@ export default function Navbar(props) {
                 const profData = await profRes.json();
                 if (profData.success && profData.data) {
                     setUserProfile(profData.data);
+                    setEditLocationInput(profData.data.location || '');
                     localStorage.setItem("userData", JSON.stringify(profData.data));
                     if (profData.data.name) {
                         localStorage.setItem("loggedInUserName", profData.data.name);
@@ -111,7 +122,7 @@ export default function Navbar(props) {
             console.warn("User profile fetch warning:", e);
         }
 
-        // 3. Fetch active ongoing order for tracking badge
+        // 3. Fetch active order
         try {
             const orderRes = await fetch(`${cleanBase}/user/active-order`, {
                 headers: { "authorization": `Bearer ${token}` }
@@ -157,56 +168,153 @@ export default function Navbar(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoggedIn]);
 
+    // Handle Detect GPS Location in Location Modal
+    const handleDetectGPSInModal = () => {
+        if (!navigator.geolocation) {
+            setLocationUpdateError("Geolocation is not supported by your browser.");
+            return;
+        }
+
+        setLocatingGPS(true);
+        setLocationUpdateError(null);
+        setLocationUpdateMsg(null);
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                    );
+                    const data = await response.json();
+                    const detectedAddress = data.display_name || `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`;
+                    setEditLocationInput(detectedAddress);
+                    setLocationUpdateMsg("Location detected! Click 'Save Delivery Address' below to confirm.");
+                } catch (err) {
+                    console.error("Reverse geocoding error:", err);
+                    setEditLocationInput(`Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`);
+                } finally {
+                    setLocatingGPS(false);
+                }
+            },
+            (err) => {
+                console.error("Location error:", err);
+                setLocationUpdateError("Unable to retrieve location. Please type your delivery address manually.");
+                setLocatingGPS(false);
+            },
+            { timeout: 10000 }
+        );
+    };
+
+    // Save Updated Delivery Location
+    const handleSaveLocation = async (e) => {
+        if (e) e.preventDefault();
+        if (!editLocationInput || editLocationInput.trim().length < 3) {
+            setLocationUpdateError("Please enter a valid address (at least 3 characters).");
+            return;
+        }
+
+        const newLoc = editLocationInput.trim();
+        setLocationUpdateError(null);
+
+        // Update local state and cache immediately
+        const updatedProf = { ...(userProfile || {}), location: newLoc };
+        setUserProfile(updatedProf);
+        localStorage.setItem("userData", JSON.stringify(updatedProf));
+
+        if (isLoggedIn) {
+            try {
+                const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api';
+                const cleanBase = baseUrl.replace(/\/$/, '');
+                await fetch(`${cleanBase}/user/update-location`, {
+                    method: 'POST',
+                    headers: {
+                        "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ location: newLoc })
+                });
+            } catch (err) {
+                console.warn("Location save API warning:", err);
+            }
+        }
+
+        setLocationUpdateMsg("Delivery location updated successfully!");
+        setTimeout(() => {
+            setShowLocationModal(false);
+            setLocationUpdateMsg(null);
+        }, 1200);
+    };
+
     // Calculate cart totals
     const cartItemCount = getCartItems.length;
     const cartTotalPrice = getCartItems.reduce((total, item) => total + (item.total_amount || 0), 0);
 
     // Display Name & Location
     const userName = userProfile?.name || localStorage.getItem("loggedInUserName") || "Foodie User";
-    const userLocation = userProfile?.location || "Delhi NCR";
-    const shortLocation = userLocation.length > 28 ? `${userLocation.substring(0, 25)}...` : userLocation;
+    const userLocation = userProfile?.location || "Connaught Place, New Delhi";
+    const shortLocation = userLocation.length > 26 ? `${userLocation.substring(0, 23)}...` : userLocation;
 
     return (
-        <header className="sticky-top z-3">
-            <nav className="navbar navbar-expand-lg glass-navbar border-bottom border-secondary border-opacity-25 py-2 px-2 px-sm-3 shadow-sm">
+        <header className="sticky-top" style={{ zIndex: 1050 }}>
+            <nav className="navbar navbar-expand-lg glass-navbar border-bottom border-secondary border-opacity-25 py-2.5 px-2 px-sm-3 shadow">
                 <div className="container-fluid px-1 px-sm-2">
                     
-                    {/* Brand Logo */}
-                    <Link className="navbar-brand d-flex align-items-center gap-2 me-2 me-md-4" to="/">
-                        <div className="brand-logo-badge d-flex align-items-center justify-content-center bg-gradient rounded-circle shadow-sm" style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
+                    {/* 1. Brand Logo Fix: Proper Line Spacing for FOOD EXPRESS */}
+                    <Link className="navbar-brand d-flex align-items-center gap-2.5 me-2 me-md-3" to="/">
+                        <div className="brand-logo-badge d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '42px', height: '42px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
                             <i className="bi bi-fire text-white fs-5"></i>
                         </div>
-                        <div className="d-flex flex-column leading-none">
-                            <span className="fs-4 fw-extrabold text-white tracking-tight">
+                        <div className="d-flex flex-column justify-content-center">
+                            <span className="fs-4 fw-extrabold text-white tracking-tight" style={{ lineHeight: '1.15' }}>
                                 Mern <span style={{ color: 'var(--primary-color)' }}>Dine</span>
                             </span>
-                            <span className="extra-small text-warning fw-semibold tracking-wider" style={{ fontSize: '0.65rem', marginTop: '-3px' }}>
+                            <span className="extra-small text-warning fw-bold tracking-wider pt-0.5" style={{ fontSize: '0.625rem', letterSpacing: '0.08em' }}>
                                 FOOD EXPRESS
                             </span>
                         </div>
                     </Link>
 
-                    {/* Delivery Location Pill Badge */}
-                    {isLoggedIn && (
-                        <div 
-                            className="d-none d-md-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-dark border border-secondary border-opacity-60 text-white-50 small cursor-pointer hover-border-warning transition-all me-auto"
-                            title={`Delivery Address: ${userLocation}`}
-                            onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                        >
-                            <i className="bi bi-geo-alt-fill text-warning fs-6"></i>
-                            <div className="d-flex flex-column" style={{ maxWidth: '240px' }}>
-                                <span className="extra-small text-white-50 leading-tight" style={{ fontSize: '0.68rem' }}>DELIVER TO</span>
-                                <span className="fw-semibold text-white text-truncate small">{shortLocation}</span>
-                            </div>
-                            <i className="bi bi-chevron-down extra-small text-white-50 ms-1"></i>
+                    {/* 2. Delivery Location Pill Fix: Clickable Address Selector */}
+                    <button 
+                        type="button"
+                        className="btn d-none d-md-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-dark bg-opacity-80 border border-secondary border-opacity-60 text-white-50 small cursor-pointer hover-border-warning transition-all me-auto shadow-sm ms-1"
+                        title={`Current Address: ${userLocation}. Click to edit address.`}
+                        onClick={() => {
+                            setEditLocationInput(userLocation);
+                            setShowLocationModal(true);
+                            setLocationUpdateMsg(null);
+                            setLocationUpdateError(null);
+                        }}
+                    >
+                        <i className="bi bi-geo-alt-fill text-warning fs-6"></i>
+                        <div className="d-flex flex-column text-start" style={{ maxWidth: '230px' }}>
+                            <span className="extra-small text-white-50" style={{ fontSize: '0.65rem', lineHeight: '1' }}>DELIVER TO</span>
+                            <span className="fw-semibold text-white text-truncate small" style={{ lineHeight: '1.2' }}>{shortLocation}</span>
                         </div>
-                    )}
+                        <i className="bi bi-chevron-down extra-small text-warning ms-1 opacity-75"></i>
+                    </button>
 
-                    {/* Mobile Menu Toggle Button */}
+                    {/* Mobile Quick Action Buttons */}
                     <div className="d-flex align-items-center gap-2 d-lg-none ms-auto">
+                        {/* Mobile Location Quick Button */}
+                        <button 
+                            type="button"
+                            className="btn btn-dark border border-secondary p-2 rounded-circle d-flex align-items-center justify-content-center text-warning"
+                            onClick={() => {
+                                setEditLocationInput(userLocation);
+                                setShowLocationModal(true);
+                            }}
+                            title="Location"
+                            style={{ width: '38px', height: '38px' }}
+                        >
+                            <i className="bi bi-geo-alt-fill fs-6"></i>
+                        </button>
+
                         {/* Mobile Cart Quick Icon */}
                         {isLoggedIn && (
                             <button 
+                                type="button"
                                 className="btn btn-brand rounded-circle p-2 d-flex align-items-center justify-content-center position-relative shadow-sm"
                                 onClick={() => setCartView(true)}
                                 style={{ width: '38px', height: '38px' }}
@@ -232,13 +340,13 @@ export default function Navbar(props) {
                     </div>
 
                     {/* Navbar Navigation Items */}
-                    <div className={`collapse navbar-collapse ${isNavExpanded ? 'show mt-3 p-3 bg-dark bg-opacity-95 rounded-3 border border-secondary border-opacity-50' : ''}`} id="navbarNav">
+                    <div className={`collapse navbar-collapse ${isNavExpanded ? 'show mt-3 p-3 bg-dark bg-opacity-95 rounded-3 border border-secondary border-opacity-50 shadow-lg' : ''}`} id="navbarNav">
                         
                         {/* Navigation Links */}
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold gap-1">
                             <li className="nav-item">
                                 <Link 
-                                    className={`nav-link px-3 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/' ? 'text-warning active bg-dark bg-opacity-50 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
+                                    className={`nav-link px-3 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
                                     to="/"
                                 >
                                     <i className="bi bi-house-door-fill"></i> Home
@@ -248,7 +356,7 @@ export default function Navbar(props) {
                             {isLoggedIn && (
                                 <li className="nav-item">
                                     <Link 
-                                        className={`nav-link px-3 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/myorders' ? 'text-warning active bg-dark bg-opacity-50 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
+                                        className={`nav-link px-3 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/myorders' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
                                         to="/myorders"
                                     >
                                         <i className="bi bi-receipt-cutoff"></i> My Orders
@@ -256,10 +364,11 @@ export default function Navbar(props) {
                                 </li>
                             )}
 
-                            {/* Active Order Live Tracking Badge (If active order exists) */}
+                            {/* Active Order Live Tracking Badge */}
                             {isLoggedIn && activeOrder && (
                                 <li className="nav-item">
                                     <button 
+                                        type="button"
                                         className="nav-link btn btn-link text-warning active bg-warning bg-opacity-10 px-3 py-2 rounded-pill d-flex align-items-center gap-2 border border-warning border-opacity-40 animate-pulse text-decoration-none"
                                         onClick={() => setShowOrderTracker(true)}
                                     >
@@ -271,13 +380,14 @@ export default function Navbar(props) {
                             )}
                         </ul>
 
-                        {/* Right Actions: Cart & User Profile / Login Signup */}
-                        <div className="d-flex align-items-center flex-wrap gap-2 pt-2 pt-lg-0 border-top border-secondary border-opacity-30 border-lg-0">
+                        {/* 4. Fix: Cleaned container without invalid border-lg-0 line above Username */}
+                        <div className={`d-flex align-items-center flex-wrap gap-2.5 ${isNavExpanded ? 'pt-3 border-top border-secondary border-opacity-40 mt-2' : ''}`}>
                             {isLoggedIn ? (
                                 <div className="d-flex align-items-center gap-2.5 w-100 w-lg-auto justify-content-between justify-content-lg-end">
                                     
                                     {/* Cart Button */}
                                     <button 
+                                        type="button"
                                         className="btn btn-brand d-inline-flex align-items-center gap-2 px-3.5 py-2 shadow-sm rounded-pill font-weight-semibold" 
                                         onClick={() => setCartView(true)}
                                     >
@@ -295,13 +405,14 @@ export default function Navbar(props) {
                                         )}
                                     </button>
 
-                                    {/* User Profile Menu Dropdown */}
-                                    <div className="position-relative" ref={profileDropdownRef}>
+                                    {/* 3. Fix: High z-index (1070) for Profile Dropdown to ensure it stays OVER Carousel */}
+                                    <div className="position-relative" ref={profileDropdownRef} style={{ zIndex: 1060 }}>
                                         <button 
+                                            type="button"
                                             className="btn btn-dark border border-secondary border-opacity-70 text-white rounded-pill px-3 py-1.5 d-flex align-items-center gap-2 shadow-sm hover-border-warning"
                                             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                                         >
-                                            <div className="bg-warning text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', fontSize: '0.85rem' }}>
+                                            <div className="bg-warning text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center shadow-sm" style={{ width: '28px', height: '28px', fontSize: '0.85rem' }}>
                                                 {userName.charAt(0).toUpperCase()}
                                             </div>
                                             <span className="fw-semibold small d-none d-sm-inline text-truncate" style={{ maxWidth: '110px' }}>
@@ -313,8 +424,8 @@ export default function Navbar(props) {
                                         {/* Dropdown Menu Modal Card */}
                                         {profileDropdownOpen && (
                                             <div 
-                                                className="position-absolute end-0 mt-2 py-2 bg-dark rounded-3 border border-secondary shadow-lg z-3 text-start"
-                                                style={{ width: '260px', background: '#0f172a' }}
+                                                className="position-absolute end-0 mt-2 py-2 bg-dark rounded-3 border border-secondary shadow-lg text-start"
+                                                style={{ width: '270px', background: '#0f172a', zIndex: 1070, boxShadow: '0 20px 40px rgba(0, 0, 0, 0.75)' }}
                                             >
                                                 <div className="px-3 py-2 border-bottom border-secondary border-opacity-50">
                                                     <div className="fw-bold text-white small text-truncate">{userName}</div>
@@ -325,10 +436,21 @@ export default function Navbar(props) {
                                                 </div>
 
                                                 <div className="px-3 py-2 border-bottom border-secondary border-opacity-30">
-                                                    <span className="extra-small text-white-50 d-block mb-1">DEFAULT ADDRESS:</span>
+                                                    <span className="extra-small text-white-50 d-block mb-1">DELIVERY ADDRESS:</span>
                                                     <span className="extra-small text-white text-truncate d-block fw-medium">
                                                         <i className="bi bi-geo-alt text-warning me-1"></i>{userLocation}
                                                     </span>
+                                                    <button 
+                                                        type="button" 
+                                                        className="btn btn-link text-warning p-0 extra-small text-decoration-none mt-1 fw-semibold"
+                                                        onClick={() => {
+                                                            setProfileDropdownOpen(false);
+                                                            setEditLocationInput(userLocation);
+                                                            setShowLocationModal(true);
+                                                        }}
+                                                    >
+                                                        <i className="bi bi-pencil me-1"></i>Change Address
+                                                    </button>
                                                 </div>
 
                                                 <div className="py-1">
@@ -378,6 +500,87 @@ export default function Navbar(props) {
                     </div>
                 </div>
             </nav>
+
+            {/* Interactive Delivery Location Modal (When user clicks 'Deliver to') */}
+            {showLocationModal && (
+                <div className="custom-modal-overlay">
+                    <div className="custom-modal-content p-4 text-white shadow-lg" style={{ maxWidth: '520px', width: '92%', zIndex: 1080 }}>
+                        <div className="d-flex align-items-center justify-content-between border-bottom border-secondary pb-3 mb-3">
+                            <div className="d-flex align-items-center gap-2">
+                                <i className="bi bi-geo-alt-fill text-warning fs-4"></i>
+                                <h5 className="fw-bold mb-0 text-white">Select Delivery Location</h5>
+                            </div>
+                            <button type="button" className="btn-close btn-close-white" onClick={() => setShowLocationModal(false)}></button>
+                        </div>
+
+                        {locationUpdateMsg && (
+                            <div className="alert auth-success-alert p-2.5 mb-3 small d-flex align-items-center gap-2">
+                                <i className="bi bi-check-circle-fill"></i>
+                                <span>{locationUpdateMsg}</span>
+                            </div>
+                        )}
+
+                        {locationUpdateError && (
+                            <div className="alert auth-error-alert p-2.5 mb-3 small d-flex align-items-center gap-2">
+                                <i className="bi bi-exclamation-triangle-fill"></i>
+                                <span>{locationUpdateError}</span>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSaveLocation}>
+                            <div className="mb-3">
+                                <label htmlFor="deliveryAddressInput" className="form-label text-white-50 small fw-semibold">
+                                    Delivery Address
+                                </label>
+                                <div className="input-group auth-input-group">
+                                    <span className="input-group-text"><i className="bi bi-geo-alt"></i></span>
+                                    <input
+                                        type="text"
+                                        id="deliveryAddressInput"
+                                        className="form-control"
+                                        placeholder="Type your address or click Detect GPS..."
+                                        value={editLocationInput}
+                                        onChange={(e) => setEditLocationInput(e.target.value)}
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Detect GPS Location Button */}
+                            <div className="mb-4">
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-warning w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 small"
+                                    onClick={handleDetectGPSInModal}
+                                    disabled={locatingGPS}
+                                >
+                                    {locatingGPS ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            <span>Detecting Live GPS...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="bi bi-crosshair fs-6"></i>
+                                            <span>Detect Current Location via GPS</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            <div className="d-flex justify-content-end gap-2 border-top border-secondary pt-3">
+                                <button type="button" className="btn btn-outline-light px-3 py-2 small" onClick={() => setShowLocationModal(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn btn-brand px-4 py-2 small fw-bold">
+                                    Save Delivery Address
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Cart Modal Container */}
             {cartView && (
