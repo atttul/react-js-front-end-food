@@ -248,21 +248,21 @@ export default function Login() {
         <div className="d-flex flex-column min-vh-100">
             <Navbar />
 
-            <div className="container px-2 px-sm-3 d-flex justify-content-center align-items-center flex-grow-1 py-3 py-md-5">
-                <div className="card auth-wrapper w-100 border-0 overflow-hidden" style={{ maxWidth: '960px' }}>
+            <div className="container px-2 px-sm-3 d-flex justify-content-center align-items-center flex-grow-1 py-3 py-md-4">
+                <div className="card auth-wrapper w-100 border-0 overflow-hidden shadow" style={{ maxWidth: '780px' }}>
                     <div className="row g-0">
 
                         {/* Left Panel - Branding & Highlights (Desktop & Tablet) */}
-                        <div className="col-md-5 d-none d-md-flex auth-hero-panel">
+                        <div className="col-md-5 d-none d-md-flex auth-hero-panel p-4">
                             <div className="auth-hero-overlay"></div>
 
                             <div className="position-relative z-1">
-                                <span className="auth-badge mb-3">
+                                <span className="auth-badge mb-2.5">
                                     <i className="bi bi-fire"></i> Fresh & Hot Delivery
                                 </span>
-                                <h2 className="fw-extrabold text-white display-6 mb-3">
+                                <h3 className="fw-bold text-white fs-4 mb-2">
                                     Taste the extraordinary, delivered daily.
-                                </h2>
+                                </h3>
                                 <p className="text-white-50 small leading-relaxed mb-4">
                                     Access exclusive gourmet deals, track live order status, and satisfy your cravings in minutes.
                                 </p>

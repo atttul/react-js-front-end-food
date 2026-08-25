@@ -58,18 +58,18 @@ export default function Card(props) {
                     className="food-card-img"
                 />
             </div>
-            <div className="card-body d-flex flex-column justify-content-between p-3 flex-grow-1">
+            <div className="card-body d-flex flex-column justify-content-between p-2.5 flex-grow-1">
                 <div>
-                    <h5 className="card-title food-card-title fw-bold text-white mb-2 fs-5">{props.foodItem.name}</h5>
+                    <h6 className="card-title food-card-title fw-bold text-white mb-2 fs-6">{props.foodItem.name}</h6>
                     {successMessage && (
-                        <div className={`alert ${localStorage.getItem("authToken") ? 'alert-success' : 'alert-warning'} py-2 px-3 small rounded-3 mb-2`} role="alert">
+                        <div className={`alert ${localStorage.getItem("authToken") ? 'alert-success' : 'alert-warning'} py-1.5 px-2.5 extra-small rounded-3 mb-2`} role="alert">
                             {successMessage}
                         </div>
                     )}
                     
-                    <div className="d-flex align-items-center justify-content-between my-3 gap-2 flex-wrap">
+                    <div className="d-flex align-items-center justify-content-between my-2 gap-2 flex-wrap">
                         <div className="d-flex align-items-center gap-1">
-                            <label className="text-muted small me-1">Qty:</label>
+                            <label className="text-muted extra-small me-1">Qty:</label>
                             <select className="custom-select form-select-sm" onChange={(e) => setQty(e.target.value)}>
                                 {Array.from(Array(6), (e, i) => {
                                     return (
@@ -80,7 +80,7 @@ export default function Card(props) {
                         </div>
 
                         <div className="d-flex align-items-center gap-1">
-                            <label className="text-muted small me-1">Option:</label>
+                            <label className="text-muted extra-small me-1">Option:</label>
                             <select className="custom-select form-select-sm" ref={priceRef} onChange={(e) => { setSize(e.target.value) }}>
                                 {options.map(data => {
                                     return (
@@ -92,12 +92,12 @@ export default function Card(props) {
                     </div>
                 </div>
 
-                <div className="border-top border-secondary pt-3 mt-1">
-                    <div className="d-flex align-items-center justify-content-between mb-3">
-                        <span className="text-muted small">Total Price</span>
-                        <span className="fs-5 fw-bold text-warning">₹{finalPrice}/-</span>
+                <div className="border-top border-secondary pt-2 mt-1">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                        <span className="text-muted extra-small">Total Price</span>
+                        <span className="fw-bold text-warning fs-6">₹{finalPrice}/-</span>
                     </div>
-                    <button className="btn btn-brand w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" onClick={handleAddCart}>
+                    <button className="btn btn-brand w-100 py-1.5 fw-semibold d-flex align-items-center justify-content-center gap-1.5 small" onClick={handleAddCart}>
                         <i className="bi bi-bag-plus fs-6"></i> Add To Cart
                     </button>
                 </div>
