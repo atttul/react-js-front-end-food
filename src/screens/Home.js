@@ -10,23 +10,35 @@ export default function Home() {
     let [search, setSearch] = useState('');
 
     const loadData = async () => {
-        let foodItems = await fetch(`${process.env.REACT_APP_BASE_URL}/food/data`, {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        let foodCategories = await fetch(`${process.env.REACT_APP_BASE_URL}/food/categories`, {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        foodCategories = await foodCategories.json()
-        foodItems = await foodItems.json()
+        const baseUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
+        const cleanBase = baseUrl.replace(/\/$/, '');
 
-        setFoodItem(foodItems.data);
-        setFoodCat(foodCategories.data);
+        try {
+            const res = await fetch(`${cleanBase}/food/home-data`);
+            if (res.ok) {
+                const json = await res.json();
+                if (json.success && json.data) {
+                    setFoodItem(json.data.foodItems || []);
+                    setFoodCat(json.data.foodCategories || []);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn("Single endpoint fetch attempt fallback:", e);
+        }
+
+        try {
+            const [itemsRes, catRes] = await Promise.all([
+                fetch(`${cleanBase}/food/data`),
+                fetch(`${cleanBase}/food/categories`)
+            ]);
+            const itemsJson = await itemsRes.json();
+            const catJson = await catRes.json();
+            setFoodItem(itemsJson.data || []);
+            setFoodCat(catJson.data || []);
+        } catch (err) {
+            console.error("Error loading home data:", err);
+        }
     }
 
     useEffect(() => {
