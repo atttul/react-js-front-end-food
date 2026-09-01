@@ -275,10 +275,10 @@ export default function Navbar() {
                         </div>
                     </Link>
 
-                    {/* 2. Delivery Location Pill: Comfortable Margin & Gap */}
+                    {/* 2. Delivery Location Pill: Clear Right Margin from Home Link */}
                     <button 
                         type="button"
-                        className="btn d-none d-md-flex align-items-center gap-2.5 px-3.5 py-1.5 rounded-pill bg-dark bg-opacity-80 border border-secondary border-opacity-60 text-white-50 small cursor-pointer hover-border-warning transition-all me-auto shadow-sm ms-2"
+                        className="btn d-none d-md-flex align-items-center gap-2.5 px-3.5 py-1.5 rounded-pill bg-dark bg-opacity-80 border border-secondary border-opacity-60 text-white-50 small cursor-pointer hover-border-warning transition-all shadow-sm ms-2 me-md-3 me-lg-4"
                         title={`Current Address: ${userLocation}. Click to edit address.`}
                         onClick={() => {
                             setEditLocationInput(userLocation);
@@ -288,7 +288,7 @@ export default function Navbar() {
                         }}
                     >
                         <i className="bi bi-geo-alt-fill text-warning fs-6"></i>
-                        <div className="d-flex flex-column text-start" style={{ maxWidth: '230px' }}>
+                        <div className="d-flex flex-column text-start" style={{ maxWidth: '220px' }}>
                             <span className="extra-small text-white-50" style={{ fontSize: '0.65rem', lineHeight: '1' }}>DELIVER TO</span>
                             <span className="fw-semibold text-white text-truncate small" style={{ lineHeight: '1.2' }}>{shortLocation}</span>
                         </div>
@@ -342,8 +342,8 @@ export default function Navbar() {
                     {/* Navbar Navigation Items */}
                     <div className={`collapse navbar-collapse ${isNavExpanded ? 'show mt-3 p-3 bg-dark bg-opacity-95 rounded-3 border border-secondary border-opacity-50 shadow-lg' : ''}`} id="navbarNav">
                         
-                        {/* Navigation Links with Generous Gap */}
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold gap-2 gap-lg-3">
+                        {/* Navigation Links with Generous Left Margin from Address Selector */}
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold gap-2 gap-lg-3 ms-lg-4 ms-xl-5">
                             <li className="nav-item">
                                 <Link 
                                     className={`nav-link px-3.5 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
