@@ -8,7 +8,6 @@ export default function Signup() {
         email: "",
         phone: "",
         password: "",
-        confirmPassword: "",
         geolocation: ""
     });
 
@@ -17,13 +16,11 @@ export default function Signup() {
         email: false,
         phone: false,
         password: false,
-        confirmPassword: false,
         geolocation: false
     });
 
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [agreeTerms, setAgreeTerms] = useState(true);
     const [loading, setLoading] = useState(false);
     const [locating, setLocating] = useState(false);
@@ -91,19 +88,9 @@ export default function Signup() {
                 }
                 break;
 
-            case 'confirmPassword':
-                if (!value) {
-                    errorMsg = "Please confirm your password.";
-                } else if (value !== currentCredentials.password) {
-                    errorMsg = "Passwords do not match.";
-                }
-                break;
-
             case 'geolocation':
-                if (!value || value.trim().length === 0) {
-                    errorMsg = "Delivery location/address is required.";
-                } else if (value.trim().length < 5) {
-                    errorMsg = "Address should be at least 5 characters.";
+                if (value && value.trim().length > 0 && value.trim().length < 3) {
+                    errorMsg = "Address should be at least 3 characters if provided.";
                 }
                 break;
 
@@ -132,12 +119,6 @@ export default function Signup() {
         if (touched[name]) {
             const fieldErr = validateField(name, value, updatedCredentials);
             setErrors(prev => ({ ...prev, [name]: fieldErr }));
-
-            // Also re-validate confirmPassword if password changes
-            if (name === 'password' && touched.confirmPassword) {
-                const confirmErr = validateField('confirmPassword', credentials.confirmPassword, updatedCredentials);
-                setErrors(prev => ({ ...prev, confirmPassword: confirmErr }));
-            }
         }
     };
 
@@ -218,7 +199,6 @@ export default function Signup() {
             email: true,
             phone: true,
             password: true,
-            confirmPassword: true,
             geolocation: true
         };
         setTouched(allTouched);
@@ -249,7 +229,7 @@ export default function Signup() {
                     name: credentials.name.trim(),
                     email: credentials.email.trim().toLowerCase(),
                     password: credentials.password,
-                    location: credentials.geolocation.trim(),
+                    location: credentials.geolocation ? credentials.geolocation.trim() : "",
                     phone: cleanPhone
                 })
             });
@@ -277,7 +257,7 @@ export default function Signup() {
     };
 
     const handleSocialSignup = (provider) => {
-        setError(`${provider} sign up is integrated with OAuth. Please enter your details directly to create an account.`);
+        setError(`${provider} Sign In is coming soon! Please complete the registration form below.`);
     };
 
     const getInputClass = (fieldName) => {
@@ -313,7 +293,7 @@ export default function Signup() {
                                         <div className="auth-feature-icon bg-warning bg-opacity-20 text-warning rounded-circle p-1">
                                             <i className="bi bi-shield-check-fill fs-6"></i>
                                         </div>
-                                        <span>Instant SMS & Phone OTP Authentication</span>
+                                        <span>Quick & Secure Account Setup</span>
                                     </div>
                                     <div className="d-flex align-items-center gap-2.5">
                                         <div className="auth-feature-icon bg-warning bg-opacity-20 text-warning rounded-circle p-1">
@@ -482,7 +462,7 @@ export default function Signup() {
                                     </div>
 
                                     {/* Password */}
-                                    <div className="col-12 col-sm-6">
+                                    <div className="col-12">
                                         <label htmlFor="password" className="form-label text-white-50 fw-semibold small mb-1">
                                             Password <span className="text-danger">*</span>
                                         </label>
@@ -536,51 +516,10 @@ export default function Signup() {
                                         )}
                                     </div>
 
-                                    {/* Confirm Password */}
-                                    <div className="col-12 col-sm-6">
-                                        <label htmlFor="confirmPassword" className="form-label text-white-50 fw-semibold small mb-1">
-                                            Confirm Password <span className="text-danger">*</span>
-                                        </label>
-                                        <div className={`input-group auth-input-group ${touched.confirmPassword ? (errors.confirmPassword ? 'has-error' : 'has-success') : ''}`}>
-                                            <span className="input-group-text"><i className="bi bi-shield-check"></i></span>
-                                            <input
-                                                type={showConfirmPassword ? "text" : "password"}
-                                                className={getInputClass('confirmPassword')}
-                                                id="confirmPassword"
-                                                name="confirmPassword"
-                                                placeholder="Re-enter password"
-                                                value={credentials.confirmPassword}
-                                                onChange={onChange}
-                                                onBlur={handleBlur}
-                                                required
-                                            />
-                                            <button
-                                                type="button"
-                                                className="btn password-toggle-btn input-group-text"
-                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                title={showConfirmPassword ? "Hide Password" : "Show Password"}
-                                            >
-                                                <i className={`bi ${showConfirmPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'}`}></i>
-                                            </button>
-                                        </div>
-
-                                        {touched.confirmPassword && !errors.confirmPassword && credentials.confirmPassword && (
-                                            <div className="valid-feedback d-block extra-small mt-1 text-success fw-medium">
-                                                <i className="bi bi-check-circle me-1"></i>Passwords match!
-                                            </div>
-                                        )}
-
-                                        {touched.confirmPassword && errors.confirmPassword && (
-                                            <div className="invalid-feedback d-block extra-small mt-1 text-danger fw-medium">
-                                                <i className="bi bi-exclamation-circle me-1"></i>{errors.confirmPassword}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Address / Location */}
+                                    {/* Address / Location (Optional) */}
                                     <div className="col-12">
                                         <label htmlFor="geolocation" className="form-label text-white-50 fw-semibold small mb-1">
-                                            Delivery Location / Address <span className="text-danger">*</span>
+                                            Delivery Location / Address <span className="text-white-50 extra-small fw-normal">(Optional)</span>
                                         </label>
                                         <div className={`input-group auth-input-group ${touched.geolocation ? (errors.geolocation ? 'has-error' : 'has-success') : ''}`}>
                                             <span className="input-group-text"><i className="bi bi-geo-alt"></i></span>
@@ -589,11 +528,10 @@ export default function Signup() {
                                                 className={getInputClass('geolocation')}
                                                 id="geolocation"
                                                 name="geolocation"
-                                                placeholder="Enter full delivery address or click Detect GPS..."
+                                                placeholder="Enter delivery address or Detect GPS (Optional)..."
                                                 value={credentials.geolocation}
                                                 onChange={onChange}
                                                 onBlur={handleBlur}
-                                                required
                                             />
                                             <button
                                                 type="button"
