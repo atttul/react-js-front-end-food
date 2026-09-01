@@ -237,7 +237,7 @@ export default function MyOrders() {
                                 <div key={group.id || groupIdx} className="card my-orders-card border-0 shadow">
                                     
                                     {/* Card Top Section: Order #, Date/Time & Status Badge */}
-                                    <div className="p-3.5 p-sm-4 border-bottom border-secondary border-opacity-30 d-flex align-items-center justify-content-between flex-wrap gap-2.5 bg-dark bg-opacity-40">
+                                    <div className="my-orders-card-header p-3.5 p-sm-4 d-flex align-items-center justify-content-between flex-wrap gap-2.5">
                                         <div>
                                             <div className="d-flex align-items-center gap-2 mb-1">
                                                 <h5 className="fw-bold text-white mb-0 fs-6">
@@ -321,7 +321,7 @@ export default function MyOrders() {
                                     )}
 
                                     {/* Card Bottom Section: Total Summary & Actions */}
-                                    <div className="p-3.5 p-sm-4 bg-dark bg-opacity-60 border-top border-secondary border-opacity-30 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                    <div className="my-orders-card-footer p-3.5 p-sm-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
                                         {/* Total Summary */}
                                         <div className="d-flex align-items-baseline gap-2">
                                             <span className="text-white-50 small">Total ({group.items.length} {group.items.length === 1 ? 'item' : 'items'}):</span>

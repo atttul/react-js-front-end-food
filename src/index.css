@@ -549,31 +549,42 @@ code {
   animation: pulseGlow 2s infinite;
 }
 
-/* Modern My Orders Redesign Styling */
+/* Modern My Orders Redesign Styling & Enhanced Contrast Hierarchy */
 .my-orders-container {
   max-width: 840px;
   margin: 0 auto;
 }
 
 .my-orders-header-card {
-  background: linear-gradient(145deg, #182234 0%, #0d1322 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(145deg, #1d293d 0%, #151f32 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: 16px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3) !important;
 }
 
+/* Order Card: Elevated Level 2 Background contrasting clearly against #0b0f19 page background */
 .my-orders-card {
-  background: linear-gradient(145deg, #162032 0%, #0f172a 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(145deg, #1c283e 0%, #141e30 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: 16px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.3) !important;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   overflow: hidden;
 }
 
 .my-orders-card:hover {
-  border-color: rgba(253, 86, 49, 0.35) !important;
-  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(253, 86, 49, 0.1);
+  border-color: rgba(253, 86, 49, 0.45) !important;
+  box-shadow: 0 18px 40px -8px rgba(0, 0, 0, 0.65), 0 0 24px rgba(253, 86, 49, 0.15) !important;
+}
+
+.my-orders-card-header {
+  background: rgba(11, 17, 28, 0.75) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.my-orders-card-footer {
+  background: rgba(11, 17, 28, 0.75) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 .order-status-badge {
@@ -611,17 +622,18 @@ code {
   color: #f87171;
 }
 
+/* Order Item Row: Distinct Inset Level 3 Background inside the Card */
 .order-item-row {
-  background-color: rgba(13, 19, 34, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: #0d1424 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 12px;
   padding: 0.85rem 1rem;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .order-item-row:hover {
-  background-color: rgba(13, 19, 34, 0.9);
-  border-color: rgba(255, 255, 255, 0.12);
+  background-color: #0a0f1c !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 .order-item-thumb {
@@ -630,7 +642,7 @@ code {
   min-width: 48px;
   border-radius: 10px;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .order-item-placeholder {
@@ -638,8 +650,8 @@ code {
   height: 48px;
   min-width: 48px;
   border-radius: 10px;
-  background: rgba(253, 86, 49, 0.12);
-  border: 1px solid rgba(253, 86, 49, 0.25);
+  background: rgba(253, 86, 49, 0.14);
+  border: 1px solid rgba(253, 86, 49, 0.28);
   color: var(--primary-color);
   display: flex;
   align-items: center;
