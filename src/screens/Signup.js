@@ -331,6 +331,23 @@ export default function Signup() {
 
                         {/* Right Panel - Signup Form */}
                         <div className="col-md-7 p-3 p-sm-4 p-lg-5 d-flex flex-column justify-content-center">
+
+                            {/* Back Navigation Bar */}
+                            <div className="d-flex align-items-center justify-content-between mb-3">
+                                <button 
+                                    type="button" 
+                                    className="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1 extra-small fw-semibold text-white-50 border-secondary border-opacity-60 d-inline-flex align-items-center gap-1.5 hover-border-warning"
+                                    onClick={() => navigate('/')}
+                                    title="Back to Home"
+                                >
+                                    <i className="bi bi-arrow-left text-warning"></i> Back
+                                </button>
+
+                                <Link to="/" className="text-white-50 extra-small text-decoration-none d-inline-flex align-items-center gap-1 hover-text-warning">
+                                    <i className="bi bi-house-door text-warning"></i> Home
+                                </Link>
+                            </div>
+
                             <div className="mb-3 mb-sm-4 d-none d-md-block">
                                 <div className="d-inline-flex align-items-center justify-content-center p-2.5 rounded-circle bg-dark border border-secondary mb-2.5 text-warning">
                                     <i className="bi bi-person-plus-fill fs-4"></i>

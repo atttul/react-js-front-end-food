@@ -263,6 +263,22 @@ export default function ForgotPassword() {
                         {/* Right Panel - Form Container */}
                         <div className="col-md-7 p-3 p-sm-4 p-lg-5 d-flex flex-column justify-content-center">
                             
+                            {/* Back Navigation Bar */}
+                            <div className="d-flex align-items-center justify-content-between mb-3">
+                                <button 
+                                    type="button" 
+                                    className="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1 extra-small fw-semibold text-white-50 border-secondary border-opacity-60 d-inline-flex align-items-center gap-1.5 hover-border-warning"
+                                    onClick={() => navigate('/login')}
+                                    title="Back to Login"
+                                >
+                                    <i className="bi bi-arrow-left text-warning"></i> Back to Login
+                                </button>
+
+                                <Link to="/" className="text-white-50 extra-small text-decoration-none d-inline-flex align-items-center gap-1 hover-text-warning">
+                                    <i className="bi bi-house-door text-warning"></i> Home
+                                </Link>
+                            </div>
+
                             {/* Step Indicator */}
                             <div className="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-4">
                                 <span className={`badge rounded-pill ${step === 1 ? 'bg-warning text-dark' : 'bg-secondary text-white'}`}>Step 1</span>
