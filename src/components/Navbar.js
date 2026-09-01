@@ -257,11 +257,11 @@ export default function Navbar() {
 
     return (
         <header className="sticky-top" style={{ zIndex: 1050 }}>
-            <nav className="navbar navbar-expand-lg glass-navbar border-bottom border-secondary border-opacity-25 py-2.5 px-2 px-sm-3 shadow">
+            <nav className="navbar navbar-expand-lg glass-navbar border-bottom border-secondary border-opacity-25 py-2.5 px-3 px-md-4 shadow">
                 <div className="container-fluid px-1 px-sm-2">
                     
-                    {/* 1. Brand Logo Fix: Proper Line Spacing for FOOD EXPRESS */}
-                    <Link className="navbar-brand d-flex align-items-center gap-2.5 me-2 me-md-3" to="/">
+                    {/* 1. Brand Logo: Clear Spacing from adjacent elements */}
+                    <Link className="navbar-brand d-flex align-items-center gap-2.5 me-3 me-lg-4" to="/">
                         <div className="brand-logo-badge d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '42px', height: '42px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
                             <i className="bi bi-fire text-white fs-5"></i>
                         </div>
@@ -275,10 +275,10 @@ export default function Navbar() {
                         </div>
                     </Link>
 
-                    {/* 2. Delivery Location Pill Fix: Clickable Address Selector */}
+                    {/* 2. Delivery Location Pill: Comfortable Margin & Gap */}
                     <button 
                         type="button"
-                        className="btn d-none d-md-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-dark bg-opacity-80 border border-secondary border-opacity-60 text-white-50 small cursor-pointer hover-border-warning transition-all me-auto shadow-sm ms-1"
+                        className="btn d-none d-md-flex align-items-center gap-2.5 px-3.5 py-1.5 rounded-pill bg-dark bg-opacity-80 border border-secondary border-opacity-60 text-white-50 small cursor-pointer hover-border-warning transition-all me-auto shadow-sm ms-2"
                         title={`Current Address: ${userLocation}. Click to edit address.`}
                         onClick={() => {
                             setEditLocationInput(userLocation);
@@ -295,8 +295,8 @@ export default function Navbar() {
                         <i className="bi bi-chevron-down extra-small text-warning ms-1 opacity-75"></i>
                     </button>
 
-                    {/* Mobile Quick Action Buttons */}
-                    <div className="d-flex align-items-center gap-2 d-lg-none ms-auto">
+                    {/* Mobile Quick Action Buttons with Proper Spacing */}
+                    <div className="d-flex align-items-center gap-2.5 d-lg-none ms-auto me-1">
                         {/* Mobile Location Quick Button */}
                         <button 
                             type="button"
@@ -306,7 +306,7 @@ export default function Navbar() {
                                 setShowLocationModal(true);
                             }}
                             title="Location"
-                            style={{ width: '38px', height: '38px' }}
+                            style={{ width: '40px', height: '40px' }}
                         >
                             <i className="bi bi-geo-alt-fill fs-6"></i>
                         </button>
@@ -317,7 +317,7 @@ export default function Navbar() {
                                 type="button"
                                 className="btn btn-brand rounded-circle p-2 d-flex align-items-center justify-content-center position-relative shadow-sm"
                                 onClick={() => setCartView(true)}
-                                style={{ width: '38px', height: '38px' }}
+                                style={{ width: '40px', height: '40px' }}
                             >
                                 <i className="bi bi-bag-fill fs-6"></i>
                                 {cartItemCount > 0 && (
@@ -329,7 +329,7 @@ export default function Navbar() {
                         )}
 
                         <button 
-                            className="navbar-toggler border-0 p-2 text-white bg-dark rounded-3 shadow-none"
+                            className="navbar-toggler border-0 p-2 text-white bg-dark rounded-3 shadow-none ms-1"
                             type="button" 
                             onClick={() => setIsNavExpanded(!isNavExpanded)}
                             aria-expanded={isNavExpanded}
@@ -342,24 +342,24 @@ export default function Navbar() {
                     {/* Navbar Navigation Items */}
                     <div className={`collapse navbar-collapse ${isNavExpanded ? 'show mt-3 p-3 bg-dark bg-opacity-95 rounded-3 border border-secondary border-opacity-50 shadow-lg' : ''}`} id="navbarNav">
                         
-                        {/* Navigation Links */}
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold gap-1">
+                        {/* Navigation Links with Generous Gap */}
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold gap-2 gap-lg-3">
                             <li className="nav-item">
                                 <Link 
-                                    className={`nav-link px-3 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
+                                    className={`nav-link px-3.5 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
                                     to="/"
                                 >
-                                    <i className="bi bi-house-door-fill"></i> Home
+                                    <i className="bi bi-house-door-fill text-warning"></i> <span>Home</span>
                                 </Link>
                             </li>
 
                             {isLoggedIn && (
                                 <li className="nav-item">
                                     <Link 
-                                        className={`nav-link px-3 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/myorders' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
+                                        className={`nav-link px-3.5 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/myorders' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
                                         to="/myorders"
                                     >
-                                        <i className="bi bi-receipt-cutoff"></i> My Orders
+                                        <i className="bi bi-receipt-cutoff text-warning"></i> <span>My Orders</span>
                                     </Link>
                                 </li>
                             )}
@@ -369,7 +369,7 @@ export default function Navbar() {
                                 <li className="nav-item">
                                     <button 
                                         type="button"
-                                        className="nav-link btn btn-link text-warning active bg-warning bg-opacity-10 px-3 py-2 rounded-pill d-flex align-items-center gap-2 border border-warning border-opacity-40 animate-pulse text-decoration-none"
+                                        className="nav-link btn btn-link text-warning active bg-warning bg-opacity-10 px-3.5 py-2 rounded-pill d-flex align-items-center gap-2 border border-warning border-opacity-40 animate-pulse text-decoration-none ms-lg-1"
                                         onClick={() => setShowOrderTracker(true)}
                                     >
                                         <i className="bi bi-bicycle text-warning fs-6"></i>
@@ -380,15 +380,15 @@ export default function Navbar() {
                             )}
                         </ul>
 
-                        {/* 4. Fix: Cleaned container without invalid border-lg-0 line above Username */}
-                        <div className={`d-flex align-items-center flex-wrap gap-2.5 ${isNavExpanded ? 'pt-3 border-top border-secondary border-opacity-40 mt-2' : ''}`}>
+                        {/* Right Actions Container */}
+                        <div className={`d-flex align-items-center flex-wrap gap-3 ${isNavExpanded ? 'pt-3 border-top border-secondary border-opacity-40 mt-2' : ''}`}>
                             {isLoggedIn ? (
-                                <div className="d-flex align-items-center gap-2.5 w-100 w-lg-auto justify-content-between justify-content-lg-end">
+                                <div className="d-flex align-items-center gap-3 w-100 w-lg-auto justify-content-between justify-content-lg-end">
                                     
                                     {/* Cart Button */}
                                     <button 
                                         type="button"
-                                        className="btn btn-brand d-inline-flex align-items-center gap-2 px-3.5 py-2 shadow-sm rounded-pill font-weight-semibold" 
+                                        className="btn btn-brand d-inline-flex align-items-center gap-2.5 px-4 py-2 shadow-sm rounded-pill font-weight-semibold" 
                                         onClick={() => setCartView(true)}
                                     >
                                         <i className="bi bi-bag-check-fill fs-5"></i>
@@ -405,11 +405,11 @@ export default function Navbar() {
                                         )}
                                     </button>
 
-                                    {/* 3. Fix: High z-index (1070) for Profile Dropdown to ensure it stays OVER Carousel */}
+                                    {/* Profile Dropdown Button */}
                                     <div className="position-relative" ref={profileDropdownRef} style={{ zIndex: 1060 }}>
                                         <button 
                                             type="button"
-                                            className="btn btn-dark border border-secondary border-opacity-70 text-white rounded-pill px-3 py-1.5 d-flex align-items-center gap-2 shadow-sm hover-border-warning"
+                                            className="btn btn-dark border border-secondary border-opacity-70 text-white rounded-pill px-3.5 py-1.5 d-flex align-items-center gap-2.5 shadow-sm hover-border-warning"
                                             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                                         >
                                             <div className="bg-warning text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center shadow-sm" style={{ width: '28px', height: '28px', fontSize: '0.85rem' }}>
@@ -456,7 +456,7 @@ export default function Navbar() {
                                                 <div className="py-1">
                                                     <Link 
                                                         to="/myorders" 
-                                                        className="dropdown-item px-3 py-2 text-white-50 hover-text-warning d-flex align-items-center gap-2 small"
+                                                        className="dropdown-item px-3 py-2 text-white-50 hover-text-warning d-flex align-items-center gap-2.5 small"
                                                         onClick={() => setProfileDropdownOpen(false)}
                                                     >
                                                         <i className="bi bi-box-seam text-warning"></i> Order History
@@ -465,7 +465,7 @@ export default function Navbar() {
                                                     {activeOrder && (
                                                         <button 
                                                             type="button"
-                                                            className="dropdown-item px-3 py-2 text-warning d-flex align-items-center gap-2 small bg-transparent border-0 w-100 text-start"
+                                                            className="dropdown-item px-3 py-2 text-warning d-flex align-items-center gap-2.5 small bg-transparent border-0 w-100 text-start"
                                                             onClick={() => { setShowOrderTracker(true); setProfileDropdownOpen(false); }}
                                                         >
                                                             <i className="bi bi-bicycle text-warning"></i> Track Active Order
@@ -474,7 +474,7 @@ export default function Navbar() {
 
                                                     <button 
                                                         type="button"
-                                                        className="dropdown-item px-3 py-2 text-danger d-flex align-items-center gap-2 small bg-transparent border-0 w-100 text-start mt-1 border-top border-secondary border-opacity-40"
+                                                        className="dropdown-item px-3 py-2 text-danger d-flex align-items-center gap-2.5 small bg-transparent border-0 w-100 text-start mt-1 border-top border-secondary border-opacity-40"
                                                         onClick={handleLogout}
                                                     >
                                                         <i className="bi bi-box-arrow-right"></i> Log Out Account
@@ -486,7 +486,7 @@ export default function Navbar() {
 
                                 </div>
                             ) : (
-                                <div className="d-flex align-items-center gap-2 w-100 w-lg-auto justify-content-end">
+                                <div className="d-flex align-items-center gap-3 w-100 w-lg-auto justify-content-end">
                                     <Link className="btn btn-outline-warning fw-semibold px-3.5 py-2 rounded-pill small" to="/login">
                                         Log In
                                     </Link>
