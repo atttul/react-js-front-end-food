@@ -59,7 +59,7 @@ export default function Card(props) {
                     className="food-card-img"
                 />
             </div>
-            <div className="card-body d-flex flex-column justify-content-between p-2.5 flex-grow-1">
+            <div className="card-body d-flex flex-column justify-content-between p-3 flex-grow-1">
                 <div>
                     <h6 className="card-title food-card-title fw-bold text-white mb-2 fs-6">{props.foodItem.name}</h6>
                     {successMessage && (
@@ -68,37 +68,43 @@ export default function Card(props) {
                         </div>
                     )}
                     
-                    <div className="d-flex align-items-center justify-content-between my-2 gap-2 flex-wrap">
-                        <div className="d-flex align-items-center gap-1">
-                            <label className="text-muted extra-small me-1">Qty:</label>
-                            <select className="custom-select form-select-sm" onChange={(e) => setQty(e.target.value)}>
-                                {Array.from(Array(6), (e, i) => {
-                                    return (
-                                        <option key={i + 1} value={i + 1}>{i + 1}</option>
-                                    )
-                                })}
-                            </select>
+                    {/* Consistent Aligned Qty & Option Controls Bar */}
+                    <div className="row g-2 my-2 align-items-center">
+                        <div className="col-5">
+                            <div className="d-flex align-items-center gap-1.5">
+                                <label className="text-white-50 extra-small fw-semibold mb-0 flex-shrink-0">Qty:</label>
+                                <select className="custom-select form-select-sm w-100 cursor-pointer" onChange={(e) => setQty(e.target.value)}>
+                                    {Array.from(Array(6), (e, i) => {
+                                        return (
+                                            <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                        )
+                                    })}
+                                </select>
+                            </div>
                         </div>
 
-                        <div className="d-flex align-items-center gap-1">
-                            <label className="text-muted extra-small me-1">Option:</label>
-                            <select className="custom-select form-select-sm" ref={priceRef} onChange={(e) => { setSize(e.target.value) }}>
-                                {options.map(data => {
-                                    return (
-                                        <option key={data} value={data}>{data}</option>
-                                    )
-                                })}
-                            </select>
+                        <div className="col-7">
+                            <div className="d-flex align-items-center gap-1.5">
+                                <label className="text-white-50 extra-small fw-semibold mb-0 flex-shrink-0">Option:</label>
+                                <select className="custom-select form-select-sm w-100 text-capitalize cursor-pointer" ref={priceRef} onChange={(e) => { setSize(e.target.value) }}>
+                                    {options.map(data => {
+                                        return (
+                                            <option key={data} value={data}>{data.replace('_', ' ')}</option>
+                                        )
+                                    })}
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="border-top border-secondary pt-2 mt-1">
+                {/* Total Price Section & Add To Cart Button */}
+                <div className="border-top border-secondary border-opacity-30 pt-2.5 mt-2">
                     <div className="d-flex align-items-center justify-content-between mb-2">
-                        <span className="text-muted extra-small">Total Price</span>
+                        <span className="text-white-50 extra-small fw-semibold">Total Price</span>
                         <span className="fw-bold text-warning fs-6">₹{finalPrice}/-</span>
                     </div>
-                    <button className="btn btn-brand w-100 py-1.5 fw-semibold d-flex align-items-center justify-content-center gap-1.5 small" onClick={handleAddCart}>
+                    <button className="btn btn-brand w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 small shadow-sm" onClick={handleAddCart}>
                         <i className="bi bi-bag-plus fs-6"></i> Add To Cart
                     </button>
                 </div>
@@ -106,4 +112,3 @@ export default function Card(props) {
         </div>
     )
 }
-
