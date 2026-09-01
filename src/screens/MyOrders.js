@@ -17,7 +17,7 @@ export default function MyOrders() {
 
     const fetchFoodData = async () => {
         try {
-            const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api';
+            const baseUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
             const cleanBase = baseUrl.replace(/\/$/, '');
             let res = await fetch(`${cleanBase}/food/data`);
             if (res.ok) {
@@ -39,7 +39,7 @@ export default function MyOrders() {
     const handleGetAllOrders = async () => {
         setLoading(true);
         try {
-            const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api';
+            const baseUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
             const cleanBase = baseUrl.replace(/\/$/, '');
             let res = await fetch(`${cleanBase}/order/fetch`, {
                 method: 'GET',
@@ -105,7 +105,7 @@ export default function MyOrders() {
         if (!localStorage.getItem("authToken")) return;
         setReorderingBatchId(batchId);
         try {
-            const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api';
+            const baseUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
             const cleanBase = baseUrl.replace(/\/$/, '');
             for (const item of groupItems) {
                 await fetch(`${cleanBase}/add/cart/item`, {

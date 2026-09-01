@@ -61,7 +61,7 @@ export default function Navbar() {
     const handleGetCartItems = async () => {
         if (!isLoggedIn) return;
         try {
-            const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api';
+            const baseUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
             const cleanBase = baseUrl.replace(/\/$/, '');
             let res = await fetch(`${cleanBase}/fetch/cart/items`, {
                 method: 'GET',
@@ -88,7 +88,7 @@ export default function Navbar() {
     // Fetch User Profile & Active Order
     const fetchUserDataAndActiveOrder = async () => {
         if (!isLoggedIn) return;
-        const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api';
+        const baseUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
         const cleanBase = baseUrl.replace(/\/$/, '');
         const token = localStorage.getItem("authToken");
 
@@ -224,7 +224,7 @@ export default function Navbar() {
 
         if (isLoggedIn) {
             try {
-                const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api';
+                const baseUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
                 const cleanBase = baseUrl.replace(/\/$/, '');
                 await fetch(`${cleanBase}/user/update-location`, {
                     method: 'POST',

@@ -8,46 +8,43 @@ export default function Home() {
     let [foodCat, setFoodCat] = useState([]);
     let [foodItem, setFoodItem] = useState([]);
     let [search, setSearch] = useState('');
+    let [loading, setLoading] = useState(true);
 
     const loadData = async () => {
-        const localUrl = 'http://localhost:5000/api';
-        const remoteUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
-        const urlsToTry = [localUrl, remoteUrl];
+        setLoading(true);
+        const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
         const cacheBuster = `?t=${Date.now()}`;
 
-        for (const baseUrl of urlsToTry) {
-            const cleanBase = baseUrl.replace(/\/$/, '');
-            try {
-                const res = await fetch(`${cleanBase}/food/home-data${cacheBuster}`, {
-                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-                });
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.success && json.data) {
-                        setFoodItem(json.data.foodItems || []);
-                        setFoodCat(json.data.foodCategories || []);
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.warn(`Home data fetch attempt to ${baseUrl} failed:`, e);
-            }
-
-            try {
-                const [itemsRes, catRes] = await Promise.all([
-                    fetch(`${cleanBase}/food/data${cacheBuster}`, { headers: { 'Cache-Control': 'no-cache' } }),
-                    fetch(`${cleanBase}/food/categories${cacheBuster}`, { headers: { 'Cache-Control': 'no-cache' } })
-                ]);
-                if (itemsRes.ok && catRes.ok) {
-                    const itemsJson = await itemsRes.json();
-                    const catJson = await catRes.json();
-                    setFoodItem(itemsJson.data || []);
-                    setFoodCat(catJson.data || []);
+        try {
+            const res = await fetch(`${baseUrl}/food/home-data${cacheBuster}`);
+            if (res.ok) {
+                const json = await res.json();
+                if (json.success && json.data) {
+                    setFoodItem(json.data.foodItems || []);
+                    setFoodCat(json.data.foodCategories || []);
+                    setLoading(false);
                     return;
                 }
-            } catch (err) {
-                console.warn(`Fallback fetch attempt to ${baseUrl} failed:`, err);
             }
+        } catch (e) {
+            console.warn("Primary home-data fetch failed, trying fallback endpoints:", e);
+        }
+
+        try {
+            const [itemsRes, catRes] = await Promise.all([
+                fetch(`${baseUrl}/food/data${cacheBuster}`),
+                fetch(`${baseUrl}/food/categories${cacheBuster}`)
+            ]);
+            if (itemsRes.ok && catRes.ok) {
+                const itemsJson = await itemsRes.json();
+                const catJson = await catRes.json();
+                setFoodItem(itemsJson.data || []);
+                setFoodCat(catJson.data || []);
+            }
+        } catch (err) {
+            console.error("Error loading food data:", err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -94,8 +91,14 @@ export default function Home() {
             </div>
 
             <div className="container mb-5 flex-grow-1">
-                {
-                foodCat.length !== 0 ? (
+                {loading ? (
+                    <div className="d-flex flex-column align-items-center justify-content-center my-5 py-5">
+                        <div className="spinner-border text-warning mb-3" role="status" style={{ width: '3rem', height: '3rem' }}>
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <p className="text-muted fw-semibold">Fetching delicious food items...</p>
+                    </div>
+                ) : foodCat.length !== 0 ? (
                     foodCat.map((data) => {
                         const filteredItems = foodItem.filter((item) => 
                             (item.CategoryName === data.CategoryName) && 
@@ -128,11 +131,8 @@ export default function Home() {
                         );
                     })
                 ) : (
-                    <div className="d-flex flex-column align-items-center justify-content-center my-5 py-5">
-                        <div className="spinner-border text-warning mb-3" role="status" style={{ width: '3rem', height: '3rem' }}>
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
-                        <p className="text-muted fw-semibold">Fetching delicious food items...</p>
+                    <div className="text-center my-5 py-5">
+                        <p className="text-white-50 fs-5">No food categories found.</p>
                     </div>
                 )}
             </div>

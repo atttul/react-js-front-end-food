@@ -15,7 +15,8 @@ export default function Card(props) {
             }, 5000);
             return;
         }
-        let addedCartItem = await fetch(`${process.env.REACT_APP_BASE_URL}/add/cart/item`, {
+        const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
+        let addedCartItem = await fetch(`${baseUrl}/add/cart/item`, {
             method: 'POST',
             headers: {
                 "authorization": `Bearer ${localStorage.getItem("authToken")}`,

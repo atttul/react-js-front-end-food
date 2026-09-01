@@ -8,7 +8,7 @@ export default function Cart(props) {
 
     const handleGetCartItems = async () => {
         try {
-            let res = await fetch(`${process.env.REACT_APP_BASE_URL}/fetch/cart/items`, {
+            let res = await fetch(`${(process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '')}/fetch/cart/items`, {
                 method: 'GET',
                 headers: {
                     "authorization": `Bearer ${localStorage.getItem("authToken")}`,
@@ -28,7 +28,7 @@ export default function Cart(props) {
 
     const loadFoodData = async () => {
         try {
-            let res = await fetch(`${process.env.REACT_APP_BASE_URL}/food/data`, {
+            let res = await fetch(`${(process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '')}/food/data`, {
                 method: "GET",
                 headers: {
                     'Content-Type': 'application/json'
@@ -79,7 +79,7 @@ export default function Cart(props) {
 
     const syncQuantityWithBackend = async (name, newQty, size) => {
         try {
-            await fetch(`${process.env.REACT_APP_BASE_URL}/delete/cart/item`, {
+            await fetch(`${(process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '')}/delete/cart/item`, {
                 method: 'DELETE',
                 headers: {
                     "authorization": `Bearer ${localStorage.getItem("authToken")}`,
@@ -88,7 +88,7 @@ export default function Cart(props) {
                 body: JSON.stringify({ name })
             });
 
-            await fetch(`${process.env.REACT_APP_BASE_URL}/add/cart/item`, {
+            await fetch(`${(process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '')}/add/cart/item`, {
                 method: 'POST',
                 headers: {
                     "authorization": `Bearer ${localStorage.getItem("authToken")}`,
@@ -111,7 +111,7 @@ export default function Cart(props) {
         });
 
         try {
-            await fetch(`${process.env.REACT_APP_BASE_URL}/delete/cart/item`, {
+            await fetch(`${(process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '')}/delete/cart/item`, {
                 method: 'DELETE',
                 headers: {
                     "authorization": `Bearer ${localStorage.getItem("authToken")}`,

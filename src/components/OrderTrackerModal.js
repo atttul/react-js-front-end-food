@@ -16,7 +16,8 @@ export default function OrderTrackerModal({ order, onClose }) {
     // Fetch live backend tracking if order ID is present
     useEffect(() => {
         if (order?._id) {
-            fetch(`${process.env.REACT_APP_BASE_URL}/order/track/${order._id}`)
+            const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
+            fetch(`${baseUrl}/order/track/${order._id}`)
                 .then((res) => res.json())
                 .then((data) => {
                     if (data.success && data.data && typeof data.data.remaining_seconds === 'number') {
