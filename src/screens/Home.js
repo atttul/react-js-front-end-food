@@ -10,36 +10,46 @@ export default function Home() {
     let [search, setSearch] = useState('');
 
     const loadData = async () => {
-        const baseUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
-        const cleanBase = baseUrl.replace(/\/$/, '');
+        const localUrl = 'http://localhost:5000/api';
+        const remoteUrl = process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api';
+        const urlsToTry = [localUrl, remoteUrl];
+        const cacheBuster = `?t=${Date.now()}`;
 
-        try {
-            const res = await fetch(`${cleanBase}/food/home-data`);
-            if (res.ok) {
-                const json = await res.json();
-                if (json.success && json.data) {
-                    setFoodItem(json.data.foodItems || []);
-                    setFoodCat(json.data.foodCategories || []);
+        for (const baseUrl of urlsToTry) {
+            const cleanBase = baseUrl.replace(/\/$/, '');
+            try {
+                const res = await fetch(`${cleanBase}/food/home-data${cacheBuster}`, {
+                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.success && json.data) {
+                        setFoodItem(json.data.foodItems || []);
+                        setFoodCat(json.data.foodCategories || []);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn(`Home data fetch attempt to ${baseUrl} failed:`, e);
+            }
+
+            try {
+                const [itemsRes, catRes] = await Promise.all([
+                    fetch(`${cleanBase}/food/data${cacheBuster}`, { headers: { 'Cache-Control': 'no-cache' } }),
+                    fetch(`${cleanBase}/food/categories${cacheBuster}`, { headers: { 'Cache-Control': 'no-cache' } })
+                ]);
+                if (itemsRes.ok && catRes.ok) {
+                    const itemsJson = await itemsRes.json();
+                    const catJson = await catRes.json();
+                    setFoodItem(itemsJson.data || []);
+                    setFoodCat(catJson.data || []);
                     return;
                 }
+            } catch (err) {
+                console.warn(`Fallback fetch attempt to ${baseUrl} failed:`, err);
             }
-        } catch (e) {
-            console.warn("Single endpoint fetch attempt fallback:", e);
         }
-
-        try {
-            const [itemsRes, catRes] = await Promise.all([
-                fetch(`${cleanBase}/food/data`),
-                fetch(`${cleanBase}/food/categories`)
-            ]);
-            const itemsJson = await itemsRes.json();
-            const catJson = await catRes.json();
-            setFoodItem(itemsJson.data || []);
-            setFoodCat(catJson.data || []);
-        } catch (err) {
-            console.error("Error loading home data:", err);
-        }
-    }
+    };
 
     useEffect(() => {
         loadData();
