@@ -1,13 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import OrderTrackerModal from '../components/OrderTrackerModal';
 
 export default function MyOrders() {
     const [getAllOrders, setGetAllOrders] = useState([]);
+    const [foodItemsMap, setFoodItemsMap] = useState({});
     const [loading, setLoading] = useState(true);
     const [selectedTrackOrder, setSelectedTrackOrder] = useState(null);
+    const [reorderingBatchId, setReorderingBatchId] = useState(null);
+    const [reorderToast, setReorderToast] = useState(null);
+    const [expandedOrderIds, setExpandedOrderIds] = useState({});
+
+    const navigate = useNavigate();
+
+    const fetchFoodData = async () => {
+        try {
+            const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api';
+            const cleanBase = baseUrl.replace(/\/$/, '');
+            let res = await fetch(`${cleanBase}/food/data`);
+            if (res.ok) {
+                let data = await res.json();
+                let foodList = data.data || [];
+                let map = {};
+                foodList.forEach(item => {
+                    if (item.name) {
+                        map[item.name.toLowerCase().trim()] = item.img;
+                    }
+                });
+                setFoodItemsMap(map);
+            }
+        } catch (err) {
+            console.warn("Food data lookup warning:", err);
+        }
+    };
 
     const handleGetAllOrders = async () => {
         setLoading(true);
@@ -34,6 +61,7 @@ export default function MyOrders() {
 
     useEffect(() => {
         handleGetAllOrders();
+        fetchFoodData();
     }, []);
 
     // Check if order was placed within the last 30 minutes (1800000 ms)
@@ -73,67 +101,122 @@ export default function MyOrders() {
         return Object.values(groups).sort((a, b) => b.date - a.date);
     };
 
+    const handleReorder = async (groupItems, batchId) => {
+        if (!localStorage.getItem("authToken")) return;
+        setReorderingBatchId(batchId);
+        try {
+            const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api';
+            const cleanBase = baseUrl.replace(/\/$/, '');
+            for (const item of groupItems) {
+                await fetch(`${cleanBase}/add/cart/item`, {
+                    method: 'POST',
+                    headers: {
+                        "authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: item.product_name,
+                        qty: item.quantity || 1,
+                        size: item.size || 'Standard'
+                    })
+                });
+            }
+            window.dispatchEvent(new Event('cartUpdated'));
+            setReorderToast("Items added to your cart!");
+            setTimeout(() => {
+                setReorderToast(null);
+                navigate('/', { state: { openCart: true } });
+            }, 600);
+        } catch (err) {
+            console.error("Reorder failed:", err);
+        } finally {
+            setReorderingBatchId(null);
+        }
+    };
+
+    const toggleExpandOrder = (batchId) => {
+        setExpandedOrderIds(prev => ({
+            ...prev,
+            [batchId]: !prev[batchId]
+        }));
+    };
+
     const groupedOrders = groupOrdersByBatch(getAllOrders);
 
     return (
         <div className="d-flex flex-column min-vh-100 bg-dark text-white">
             <Navbar />
 
-            {/* Compact Main Container (Max Width 760px to avoid stretched widescreen layout) */}
-            <div className="container py-4 py-md-5 flex-grow-1" style={{ maxWidth: '760px' }}>
+            {/* Main Content Container with max-width 840px for ideal spacing */}
+            <div className="container py-4 py-md-5 flex-grow-1 my-orders-container px-3 px-sm-4">
                 
-                {/* Header Title Banner */}
-                <div className="card auth-wrapper border-0 p-3 p-sm-4 mb-4 shadow">
+                {/* Reorder Notification Toast */}
+                {reorderToast && (
+                    <div className="alert auth-success-alert p-3 mb-3 shadow-lg d-flex align-items-center justify-content-between animate-pulse">
+                        <div className="d-flex align-items-center gap-2">
+                            <i className="bi bi-bag-check-fill fs-5"></i>
+                            <span className="fw-semibold">{reorderToast}</span>
+                        </div>
+                        <span className="spinner-border spinner-border-sm" role="status"></span>
+                    </div>
+                )}
+
+                {/* 1. Page Header */}
+                <div className="card my-orders-header-card border-0 p-3 p-sm-4 mb-4 shadow">
                     <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div className="d-flex align-items-center gap-3">
-                            <div className="p-2.5 rounded-circle bg-dark border border-secondary text-warning d-flex align-items-center justify-content-center" style={{ width: '46px', height: '46px' }}>
-                                <i className="bi bi-receipt-cutoff fs-4"></i>
+                            <div className="d-flex align-items-center justify-content-center rounded-circle shadow-sm" 
+                                style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
+                                <i className="bi bi-bag-check-fill text-white fs-4"></i>
                             </div>
                             <div>
-                                <h4 className="fw-bold text-white mb-0.5">My Orders</h4>
-                                <p className="text-white-50 extra-small mb-0" style={{ fontSize: '0.82rem' }}>
-                                    View your food order history & track ongoing deliveries
+                                <h3 className="fw-extrabold text-white mb-0 fs-4">My Orders</h3>
+                                <p className="text-white-50 small mb-0 mt-0.5">
+                                    View your food orders and track your deliveries
                                 </p>
                             </div>
                         </div>
 
-                        <div className="d-flex align-items-center">
-                            <span className="badge bg-dark border border-secondary text-warning px-3 py-1.5 fs-6 rounded-pill">
-                                <i className="bi bi-box-seam me-1"></i> {groupedOrders.length} {groupedOrders.length === 1 ? 'Order' : 'Orders'}
+                        <div>
+                            <span className="badge bg-dark bg-opacity-80 border border-secondary border-opacity-50 text-warning px-3 py-2 fs-6 rounded-pill fw-bold shadow-sm">
+                                <i className="bi bi-receipt me-1.5"></i> 
+                                {groupedOrders.length} {groupedOrders.length === 1 ? 'Order' : 'Orders'}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Loading State */}
+                {/* 2. Loading State */}
                 {loading ? (
-                    <div className="text-center py-5">
+                    <div className="text-center py-5 my-4">
                         <div className="spinner-border text-warning" role="status" style={{ width: '2.5rem', height: '2.5rem' }}>
                             <span className="visually-hidden">Loading Orders...</span>
                         </div>
-                        <p className="text-white-50 mt-3 small">Fetching your orders history...</p>
+                        <p className="text-white-50 mt-3 small fw-medium">Fetching your order history...</p>
                     </div>
                 ) : groupedOrders.length === 0 ? (
-                    /* Empty State */
-                    <div className="card auth-wrapper border-0 text-center py-5 px-3 my-3 shadow">
-                        <div className="d-inline-flex align-items-center justify-content-center p-3.5 rounded-circle bg-dark border border-secondary mb-3 text-warning">
-                            <i className="bi bi-bag-x fs-2"></i>
+                    /* 3. Empty State */
+                    <div className="card my-orders-card border-0 text-center py-5 px-3 my-3 shadow">
+                        <div className="d-inline-flex align-items-center justify-content-center p-3.5 rounded-circle bg-dark border border-secondary border-opacity-50 mb-3 text-warning shadow-sm mx-auto" 
+                             style={{ width: '68px', height: '68px' }}>
+                            <i className="bi bi-bag-x fs-1 text-warning"></i>
                         </div>
-                        <h5 className="text-white fw-bold mb-1.5">No Past Orders Found</h5>
-                        <p className="text-white-50 small mb-4" style={{ maxWidth: '380px', margin: '0 auto' }}>
-                            You haven't placed any food orders yet. Browse our menu and treat yourself to something delicious!
+                        <h4 className="text-white fw-bold mb-1">No orders yet</h4>
+                        <p className="text-white-50 small mb-4" style={{ maxWidth: '360px', margin: '0 auto' }}>
+                            Your delicious journey starts here. Explore our menu and treat yourself!
                         </p>
                         <div>
-                            <Link to="/" className="btn btn-brand px-4 py-2 fw-bold rounded-pill shadow-sm">
-                                <i className="bi bi-shop me-2"></i> Explore Menu
+                            <Link to="/" className="btn btn-brand px-4 py-2.5 fw-bold rounded-pill shadow">
+                                <i className="bi bi-shop me-2"></i> Browse Food
                             </Link>
                         </div>
                     </div>
                 ) : (
-                    /* Orders Card Stack */
-                    <div className="d-flex flex-column gap-3.5">
+                    /* 4. Orders Card Stack */
+                    <div className="d-flex flex-column gap-4">
                         {groupedOrders.map((group, groupIdx) => {
                             const isLiveTrackable = isTrackableWithin30Mins(group.date);
+                            const isExpanded = expandedOrderIds[group.id] !== false; // default open
                             
                             // Format Date & Time cleanly
                             const formattedDate = group.date.toLocaleDateString('en-IN', {
@@ -147,85 +230,145 @@ export default function MyOrders() {
                                 hour12: true
                             });
 
+                            const orderNum = groupedOrders.length - groupIdx;
+                            const isCancelled = group.firstItem?.order_status === 'CANCELLED';
+
                             return (
-                                <div key={groupIdx} className="card auth-wrapper border-0 shadow overflow-hidden">
+                                <div key={group.id || groupIdx} className="card my-orders-card border-0 shadow">
                                     
-                                    {/* Clean Sleek Dark Header - NO Loud Yellow/Green Bars */}
-                                    <div className="card-header bg-dark bg-opacity-90 border-bottom border-secondary border-opacity-40 p-3 px-sm-3.5 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                        <div className="d-flex align-items-center gap-2">
-                                            <span className="fw-bold text-white fs-6">
-                                                Order #{groupedOrders.length - groupIdx}
-                                            </span>
-                                            <span className="text-white-50 extra-small">•</span>
-                                            <span className="text-white-50 small" style={{ fontSize: '0.83rem' }}>
-                                                <i className="bi bi-calendar3 text-warning me-1"></i> {formattedDate}, {formattedTime}
-                                            </span>
+                                    {/* Card Top Section: Order #, Date/Time & Status Badge */}
+                                    <div className="p-3.5 p-sm-4 border-bottom border-secondary border-opacity-30 d-flex align-items-center justify-content-between flex-wrap gap-2.5 bg-dark bg-opacity-40">
+                                        <div>
+                                            <div className="d-flex align-items-center gap-2 mb-1">
+                                                <h5 className="fw-bold text-white mb-0 fs-6">
+                                                    Order #{orderNum}
+                                                </h5>
+                                                <span className="text-white-50 extra-small">•</span>
+                                                <span className="text-white-50 extra-small font-monospace">
+                                                    ID: {String(group.id).substring(0, 10)}
+                                                </span>
+                                            </div>
+                                            <div className="text-white-50 extra-small d-flex align-items-center gap-1.5">
+                                                <i className="bi bi-clock text-warning opacity-75"></i>
+                                                <span>{formattedDate}, {formattedTime}</span>
+                                            </div>
                                         </div>
 
-                                        {/* Status Text (Soft & Clean) */}
+                                        {/* Status Badge Pill */}
                                         <div>
-                                            {isLiveTrackable ? (
-                                                <span className="text-warning small fw-bold d-inline-flex align-items-center gap-1.5">
-                                                    <i className="bi bi-record-circle-fill text-danger animate-pulse"></i> Live Delivery (30m ETA)
+                                            {isCancelled ? (
+                                                <span className="order-status-badge order-status-cancelled">
+                                                    <i className="bi bi-x-circle-fill"></i> Cancelled
+                                                </span>
+                                            ) : isLiveTrackable ? (
+                                                <span className="order-status-badge order-status-live">
+                                                    <i className="bi bi-record-circle-fill text-danger animate-pulse"></i> Out for Delivery
                                                 </span>
                                             ) : (
-                                                <span className="text-success small fw-semibold d-inline-flex align-items-center gap-1">
-                                                    <i className="bi bi-check-circle-fill text-success"></i> Order Delivered
+                                                <span className="order-status-badge order-status-delivered">
+                                                    <i className="bi bi-check-circle-fill"></i> Delivered
                                                 </span>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Responsive Item List Rows (Mobile & Desktop Compatible) */}
-                                    <div className="card-body p-3 px-sm-3.5">
-                                        <div className="d-flex flex-column gap-2">
-                                            {group.items.map((item, itemIdx) => (
-                                                <div key={itemIdx} className="d-flex align-items-center justify-content-between p-2.5 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-30 gap-2">
-                                                    
-                                                    {/* Food Name & Portion Option */}
-                                                    <div className="d-flex align-items-center gap-2.5 text-truncate">
-                                                        <div className="p-2 rounded-circle bg-dark text-warning border border-secondary border-opacity-40 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '34px', height: '34px' }}>
-                                                            <i className="bi bi-egg-fried"></i>
-                                                        </div>
-                                                        <div className="text-truncate">
-                                                            <div className="fw-bold text-white small text-truncate">{item.product_name}</div>
-                                                            <div className="extra-small text-white-50">
-                                                                Option: <span className="text-info">{item.size || 'Standard'}</span> • Qty: <span className="text-warning fw-bold">{item.quantity}</span>
+                                    {/* Card Body: Order Items */}
+                                    {isExpanded && (
+                                        <div className="p-3.5 p-sm-4 d-flex flex-column gap-2.5">
+                                            {group.items.map((item, itemIdx) => {
+                                                const foodImg = foodItemsMap[item.product_name?.toLowerCase().trim()];
+
+                                                return (
+                                                    <div key={itemIdx} className="order-item-row d-flex align-items-center justify-content-between gap-3">
+                                                        
+                                                        {/* Thumbnail & Food Name */}
+                                                        <div className="d-flex align-items-center gap-3 text-truncate">
+                                                            {foodImg ? (
+                                                                <img 
+                                                                    src={foodImg} 
+                                                                    alt={item.product_name} 
+                                                                    className="order-item-thumb shadow-sm" 
+                                                                />
+                                                            ) : (
+                                                                <div className="order-item-placeholder shadow-sm">
+                                                                    <i className="bi bi-egg-fried fs-5"></i>
+                                                                </div>
+                                                            )}
+
+                                                            <div className="text-truncate">
+                                                                <div className="fw-bold text-white small text-truncate mb-0.5">
+                                                                    {item.product_name}
+                                                                </div>
+                                                                <div className="extra-small text-white-50">
+                                                                    Option: <span className="text-info fw-medium">{item.size || 'Standard'}</span> 
+                                                                    <span className="mx-1.5">•</span> 
+                                                                    Qty: <span className="text-warning fw-bold">{item.quantity || 1}</span>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
 
-                                                    {/* Price */}
-                                                    <div className="text-end flex-shrink-0">
-                                                        <div className="fw-bold text-warning small">₹{item.total_amount}/-</div>
-                                                    </div>
+                                                        {/* Item Price */}
+                                                        <div className="text-end flex-shrink-0">
+                                                            <span className="fw-bold text-white small">
+                                                                ₹{item.total_amount}/-
+                                                            </span>
+                                                        </div>
 
-                                                </div>
-                                            ))}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-                                    </div>
+                                    )}
 
-                                    {/* Summary Footer */}
-                                    <div className="card-footer bg-dark bg-opacity-70 border-top border-secondary border-opacity-40 p-3 px-sm-3.5 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                        <div className="d-flex align-items-center gap-2">
+                                    {/* Card Bottom Section: Total Summary & Actions */}
+                                    <div className="p-3.5 p-sm-4 bg-dark bg-opacity-60 border-top border-secondary border-opacity-30 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                        {/* Total Summary */}
+                                        <div className="d-flex align-items-baseline gap-2">
                                             <span className="text-white-50 small">Total ({group.items.length} {group.items.length === 1 ? 'item' : 'items'}):</span>
                                             <span className="fw-extrabold text-warning fs-5">₹{group.totalAmount}/-</span>
                                         </div>
 
-                                        <div>
-                                            {isLiveTrackable ? (
+                                        {/* Action Buttons */}
+                                        <div className="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                                            {/* Details Toggle Button */}
+                                            <button
+                                                type="button"
+                                                className="btn btn-outline-light btn-sm rounded-pill px-3 py-1.5 extra-small fw-semibold border-secondary border-opacity-50"
+                                                onClick={() => toggleExpandOrder(group.id)}
+                                            >
+                                                <i className={`bi ${isExpanded ? 'bi-chevron-up' : 'bi-chevron-down'} me-1`}></i>
+                                                {isExpanded ? 'Hide Details' : 'View Details'}
+                                            </button>
+
+                                            {/* Track Order Button (if live trackable) */}
+                                            {isLiveTrackable && (
                                                 <button 
                                                     type="button"
-                                                    className="btn btn-warning btn-sm fw-bold rounded-pill px-3.5 py-1.5 shadow"
+                                                    className="btn btn-warning btn-sm fw-bold rounded-pill px-3.5 py-1.5 shadow extra-small d-flex align-items-center gap-1.5"
                                                     onClick={() => setSelectedTrackOrder(group.firstItem)}
                                                 >
-                                                    <i className="bi bi-geo-alt-fill me-1"></i> Track Live Delivery
+                                                    <i className="bi bi-geo-alt-fill"></i> Track Delivery
                                                 </button>
-                                            ) : (
-                                                <span className="text-success extra-small fw-semibold">
-                                                    <i className="bi bi-check-all fs-6 me-1"></i> Delivered Successfully
-                                                </span>
                                             )}
+
+                                            {/* Reorder Button */}
+                                            <button 
+                                                type="button"
+                                                className="btn btn-brand btn-sm fw-bold rounded-pill px-3.5 py-1.5 shadow extra-small d-flex align-items-center gap-1.5"
+                                                onClick={() => handleReorder(group.items, group.id)}
+                                                disabled={reorderingBatchId === group.id}
+                                            >
+                                                {reorderingBatchId === group.id ? (
+                                                    <>
+                                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        <span>Adding...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <i className="bi bi-arrow-repeat"></i> Reorder
+                                                    </>
+                                                )}
+                                            </button>
                                         </div>
                                     </div>
 

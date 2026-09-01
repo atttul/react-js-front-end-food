@@ -548,3 +548,100 @@ code {
 .animate-pulse {
   animation: pulseGlow 2s infinite;
 }
+
+/* Modern My Orders Redesign Styling */
+.my-orders-container {
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.my-orders-header-card {
+  background: linear-gradient(145deg, #182234 0%, #0d1322 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.my-orders-card {
+  background: linear-gradient(145deg, #162032 0%, #0f172a 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  overflow: hidden;
+}
+
+.my-orders-card:hover {
+  border-color: rgba(253, 86, 49, 0.35) !important;
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(253, 86, 49, 0.1);
+}
+
+.order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 30px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.order-status-delivered {
+  background-color: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  color: #34d399;
+}
+
+.order-status-live {
+  background-color: rgba(253, 86, 49, 0.16);
+  border: 1px solid rgba(253, 86, 49, 0.4);
+  color: #ff8a65;
+}
+
+.order-status-preparing {
+  background-color: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fbbf24;
+}
+
+.order-status-cancelled {
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #f87171;
+}
+
+.order-item-row {
+  background-color: rgba(13, 19, 34, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.order-item-row:hover {
+  background-color: rgba(13, 19, 34, 0.9);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.order-item-thumb {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.order-item-placeholder {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 10px;
+  background: rgba(253, 86, 49, 0.12);
+  border: 1px solid rgba(253, 86, 49, 0.25);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
