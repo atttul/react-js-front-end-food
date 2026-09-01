@@ -135,10 +135,13 @@ export default function MyOrders() {
     };
 
     const toggleExpandOrder = (batchId) => {
-        setExpandedOrderIds(prev => ({
-            ...prev,
-            [batchId]: !prev[batchId]
-        }));
+        setExpandedOrderIds(prev => {
+            const currentlyExpanded = prev[batchId] !== false;
+            return {
+                ...prev,
+                [batchId]: !currentlyExpanded
+            };
+        });
     };
 
     const groupedOrders = groupOrdersByBatch(getAllOrders);
