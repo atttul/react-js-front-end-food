@@ -362,11 +362,12 @@ export default function Signup() {
                             </div>
 
                             <div className="mb-3 mb-sm-4 d-none d-md-block">
-                                <div className="d-inline-flex align-items-center justify-content-center p-2.5 rounded-circle bg-dark border border-secondary mb-2.5 text-warning">
-                                    <i className="bi bi-person-plus-fill fs-4"></i>
-                                </div>
-                                <h3 className="fw-bold text-white mb-1">Create Your Account</h3>
-                                <p className="text-white-50 small mb-0">Fill in your details below to set up your profile</p>
+                                <h2 className="fw-extrabold text-white mb-1.5 fs-3 tracking-tight">
+                                    Create Your Account
+                                </h2>
+                                <p className="text-white-50 small mb-0" style={{ fontSize: '0.875rem', lineHeight: '1.5' }}>
+                                    Enter your details below to set up your Mern Dine foodie profile
+                                </p>
                             </div>
 
                             {/* Top Alert Banner */}
