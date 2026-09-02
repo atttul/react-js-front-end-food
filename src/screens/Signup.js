@@ -278,34 +278,45 @@ export default function Signup() {
                             <div className="auth-hero-overlay"></div>
 
                             <div className="position-relative z-1">
-                                <span className="auth-badge mb-2.5">
-                                    <i className="bi bi-gift-fill"></i> Welcome Foodie Offer
+                                <span className="auth-badge mb-3">
+                                    <i className="bi bi-gift-fill me-1"></i> Welcome Foodie Offer
                                 </span>
-                                <h3 className="fw-bold text-white fs-4 mb-2">
+                                <h3 className="fw-extrabold text-white mb-2" style={{ fontSize: '1.45rem', lineHeight: '1.3' }}>
                                     Join Mern Dine Today & Save Big.
                                 </h3>
-                                <p className="text-white-50 small leading-relaxed mb-4">
+                                <p className="text-white-50 small mb-4" style={{ fontSize: '0.875rem', lineHeight: '1.6' }}>
                                     Create your free account to unlock instant discounts, live GPS order tracking, and express 30-minute food delivery.
                                 </p>
 
-                                <div className="d-flex flex-column gap-3 text-white-50 small mb-4">
-                                    <div className="d-flex align-items-center gap-2.5">
-                                        <div className="auth-feature-icon bg-warning bg-opacity-20 text-warning rounded-circle p-1">
-                                            <i className="bi bi-shield-check-fill fs-6"></i>
+                                <div className="d-flex flex-column gap-2.5 my-4">
+                                    <div className="auth-feature-card d-flex align-items-center gap-3">
+                                        <div className="auth-feature-icon-badge">
+                                            <i className="bi bi-shield-fill-check"></i>
                                         </div>
-                                        <span>Quick & Secure Account Setup</span>
+                                        <div className="d-flex flex-column">
+                                            <span className="fw-semibold text-white small">Quick & Secure Account Setup</span>
+                                            <span className="extra-small text-white-50" style={{ fontSize: '0.725rem' }}>Instant registration in under 60 seconds</span>
+                                        </div>
                                     </div>
-                                    <div className="d-flex align-items-center gap-2.5">
-                                        <div className="auth-feature-icon bg-warning bg-opacity-20 text-warning rounded-circle p-1">
-                                            <i className="bi bi-geo-alt-fill fs-6"></i>
+
+                                    <div className="auth-feature-card d-flex align-items-center gap-3">
+                                        <div className="auth-feature-icon-badge">
+                                            <i className="bi bi-geo-alt-fill"></i>
                                         </div>
-                                        <span>Live GPS Delivery Address Detection</span>
+                                        <div className="d-flex flex-column">
+                                            <span className="fw-semibold text-white small">Live GPS Address Detection</span>
+                                            <span className="extra-small text-white-50" style={{ fontSize: '0.725rem' }}>Automatic location pin for rapid delivery</span>
+                                        </div>
                                     </div>
-                                    <div className="d-flex align-items-center gap-2.5">
-                                        <div className="auth-feature-icon bg-warning bg-opacity-20 text-warning rounded-circle p-1">
-                                            <i className="bi bi-lock-fill fs-6"></i>
+
+                                    <div className="auth-feature-card d-flex align-items-center gap-3">
+                                        <div className="auth-feature-icon-badge">
+                                            <i className="bi bi-lock-fill"></i>
                                         </div>
-                                        <span>100% Encrypted & Safe Checkout</span>
+                                        <div className="d-flex flex-column">
+                                            <span className="fw-semibold text-white small">100% Encrypted & Safe Checkout</span>
+                                            <span className="extra-small text-white-50" style={{ fontSize: '0.725rem' }}>Protected transactions & privacy guaranteed</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -323,10 +334,12 @@ export default function Signup() {
                         {/* Mobile Header Banner (< 768px) */}
                         <div className="d-md-none text-center auth-mobile-header p-3 p-sm-4 bg-dark bg-opacity-50 border-bottom border-secondary border-opacity-40">
                             <span className="auth-badge mb-2">
-                                <i className="bi bi-gift-fill"></i> Welcome Foodie
+                                <i className="bi bi-gift-fill me-1"></i> Welcome Foodie Offer
                             </span>
-                            <h4 className="fw-bold text-white mb-1">Create Account</h4>
-                            <p className="text-white-50 small mb-0">Get started with Mern Dine in under 60 seconds</p>
+                            <h4 className="fw-bold text-white mb-1">Join Mern Dine Today & Save Big</h4>
+                            <p className="text-white-50 small mb-0 px-2" style={{ fontSize: '0.825rem', lineHeight: '1.4' }}>
+                                Create your free account to unlock instant discounts & 30-min express delivery.
+                            </p>
                         </div>
 
                         {/* Right Panel - Signup Form */}

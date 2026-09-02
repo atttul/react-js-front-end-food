@@ -257,28 +257,45 @@ export default function Login() {
                             <div className="auth-hero-overlay"></div>
 
                             <div className="position-relative z-1">
-                                <span className="auth-badge mb-2.5">
-                                    <i className="bi bi-fire"></i> Fresh & Hot Delivery
+                                <span className="auth-badge mb-3">
+                                    <i className="bi bi-fire me-1"></i> Fresh & Express Delivery
                                 </span>
-                                <h3 className="fw-bold text-white fs-4 mb-2">
-                                    Taste the extraordinary, delivered daily.
+                                <h3 className="fw-extrabold text-white mb-2" style={{ fontSize: '1.45rem', lineHeight: '1.3' }}>
+                                    Taste Extraordinary Flavors, Delivered Fast.
                                 </h3>
-                                <p className="text-white-50 small leading-relaxed mb-4">
-                                    Access exclusive gourmet deals, track live order status, and satisfy your cravings in minutes.
+                                <p className="text-white-50 small mb-4" style={{ fontSize: '0.875rem', lineHeight: '1.6' }}>
+                                    Access exclusive gourmet deals, track live order status, and satisfy your food cravings in minutes.
                                 </p>
 
-                                <div className="d-flex flex-column gap-3 text-white-50 small">
-                                    <div className="d-flex align-items-center gap-2.5">
-                                        <div className={`auth-feature-icon rounded-circle p-1 ${loginMethod === 'phone' ? 'bg-warning bg-opacity-20 text-warning' : 'bg-secondary bg-opacity-20 text-white-50'}`}>
-                                            <i className="bi bi-phone-vibrate fs-6"></i>
+                                <div className="d-flex flex-column gap-2.5 my-4">
+                                    <div className="auth-feature-card d-flex align-items-center gap-3">
+                                        <div className="auth-feature-icon-badge">
+                                            <i className="bi bi-phone-vibrate-fill"></i>
                                         </div>
-                                        <span className={loginMethod === 'phone' ? 'text-white fw-medium' : ''}>Mobile Number & OTP Login</span>
+                                        <div className="d-flex flex-column">
+                                            <span className="fw-semibold text-white small">Mobile Number & OTP Login</span>
+                                            <span className="extra-small text-white-50" style={{ fontSize: '0.725rem' }}>One-tap instant security code</span>
+                                        </div>
                                     </div>
-                                    <div className="d-flex align-items-center gap-2.5">
-                                        <div className={`auth-feature-icon rounded-circle p-1 ${loginMethod === 'email' ? 'bg-warning bg-opacity-20 text-warning' : 'bg-secondary bg-opacity-20 text-white-50'}`}>
-                                            <i className="bi bi-shield-lock-fill fs-6"></i>
+
+                                    <div className="auth-feature-card d-flex align-items-center gap-3">
+                                        <div className="auth-feature-icon-badge">
+                                            <i className="bi bi-shield-lock-fill"></i>
                                         </div>
-                                        <span className={loginMethod === 'email' ? 'text-white fw-medium' : ''}>Email & Password Direct Login</span>
+                                        <div className="d-flex flex-column">
+                                            <span className="fw-semibold text-white small">Email & Password Direct Access</span>
+                                            <span className="extra-small text-white-50" style={{ fontSize: '0.725rem' }}>Encrypted credentials sign in</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="auth-feature-card d-flex align-items-center gap-3">
+                                        <div className="auth-feature-icon-badge">
+                                            <i className="bi bi-bicycle"></i>
+                                        </div>
+                                        <div className="d-flex flex-column">
+                                            <span className="fw-semibold text-white small">Live GPS Order Tracking</span>
+                                            <span className="extra-small text-white-50" style={{ fontSize: '0.725rem' }}>Real-time delivery progress updates</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -303,10 +320,12 @@ export default function Login() {
                         {/* Mobile Header Banner (< 768px) */}
                         <div className="d-md-none text-center auth-mobile-header p-3 p-sm-4 bg-dark bg-opacity-50 border-bottom border-secondary border-opacity-40">
                             <span className="auth-badge mb-2">
-                                <i className="bi bi-fire"></i> Mern Dine
+                                <i className="bi bi-fire me-1"></i> Mern Dine Express
                             </span>
-                            <h4 className="fw-bold text-white mb-1">Welcome Back</h4>
-                            <p className="text-white-50 small mb-0">Sign in to order your favorite dishes</p>
+                            <h4 className="fw-bold text-white mb-1">Welcome Back, Foodie</h4>
+                            <p className="text-white-50 small mb-0 px-2" style={{ fontSize: '0.825rem', lineHeight: '1.4' }}>
+                                Sign in to order your favorite dishes & track live orders.
+                            </p>
                         </div>
 
                         {/* Right Panel - Login Form Container */}
