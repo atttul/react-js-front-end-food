@@ -257,240 +257,368 @@ export default function Navbar() {
 
     return (
         <header className="sticky-top" style={{ zIndex: 1050 }}>
-            <nav className="navbar navbar-expand-lg glass-navbar border-bottom border-secondary border-opacity-25 py-2.5 px-3 px-md-4 shadow">
-                <div className="container-fluid px-1 px-sm-2">
+            <nav className="navbar glass-navbar border-bottom border-secondary border-opacity-25 py-2 px-2.5 px-md-4 shadow-sm">
+                <div className="container-fluid px-0 px-sm-2 d-flex align-items-center justify-content-between">
                     
-                    {/* 1. Brand Logo */}
-                    <Link className="navbar-brand d-flex align-items-center gap-2.5 me-2 me-lg-3" to="/">
-                        <div className="brand-logo-badge d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '42px', height: '42px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
-                            <i className="bi bi-fire text-white fs-5"></i>
-                        </div>
-                        <div className="d-flex flex-column justify-content-center">
-                            <span className="fs-4 fw-extrabold text-white tracking-tight" style={{ lineHeight: '1.15' }}>
-                                Mern <span style={{ color: 'var(--primary-color)' }}>Dine</span>
-                            </span>
-                            <span className="extra-small text-warning fw-bold tracking-wider pt-0.5" style={{ fontSize: '0.625rem', letterSpacing: '0.08em' }}>
-                                FOOD EXPRESS
-                            </span>
-                        </div>
-                    </Link>
+                    {/* 1. Left Group: Brand Logo & Compact Location Button */}
+                    <div className="d-flex align-items-center gap-1.5 gap-sm-2.5 overflow-hidden">
+                        {/* Brand Logo */}
+                        <Link className="navbar-brand d-flex align-items-center gap-2 m-0 p-0" to="/">
+                            <div className="brand-logo-badge d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '38px', height: '38px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
+                                <i className="bi bi-fire text-white fs-6"></i>
+                            </div>
+                            <div className="d-flex flex-column justify-content-center">
+                                <span className="fs-5 fw-extrabold text-white tracking-tight" style={{ lineHeight: '1.1' }}>
+                                    Mern <span style={{ color: 'var(--primary-color)' }}>Dine</span>
+                                </span>
+                                <span className="extra-small text-warning fw-bold tracking-wider d-none d-sm-inline" style={{ fontSize: '0.6rem', letterSpacing: '0.08em' }}>
+                                    FOOD EXPRESS
+                                </span>
+                            </div>
+                        </Link>
 
-                    {/* 2. Delivery Location Pill */}
-                    <button 
-                        type="button"
-                        className="btn d-none d-md-flex align-items-center gap-2.5 px-3.5 py-1.5 rounded-pill bg-dark bg-opacity-80 border border-secondary border-opacity-60 text-white-50 small cursor-pointer hover-border-warning transition-all shadow-sm ms-1 me-2 me-lg-3"
-                        title={`Current Address: ${userLocation}. Click to edit address.`}
-                        onClick={() => {
-                            setEditLocationInput(userLocation);
-                            setShowLocationModal(true);
-                            setLocationUpdateMsg(null);
-                            setLocationUpdateError(null);
-                        }}
-                    >
-                        <i className="bi bi-geo-alt-fill text-warning fs-6"></i>
-                        <div className="d-flex flex-column text-start" style={{ maxWidth: '220px' }}>
-                            <span className="extra-small text-white-50" style={{ fontSize: '0.65rem', lineHeight: '1' }}>DELIVER TO</span>
-                            <span className="fw-semibold text-white text-truncate small" style={{ lineHeight: '1.2' }}>{shortLocation}</span>
-                        </div>
-                        <i className="bi bi-chevron-down extra-small text-warning ms-1 opacity-75"></i>
-                    </button>
-
-                    {/* Mobile Quick Action Buttons with Proper Spacing */}
-                    <div className="d-flex align-items-center gap-2.5 d-lg-none ms-auto me-1">
-                        {/* Mobile Location Quick Button */}
+                        {/* Compact Location Pill Button (Mobile & Desktop) */}
                         <button 
                             type="button"
-                            className="btn btn-dark border border-secondary p-2 rounded-circle d-flex align-items-center justify-content-center text-warning"
+                            className="btn mobile-location-btn d-flex align-items-center gap-1.5 ms-1 ms-sm-2 text-truncate"
+                            title={`Deliver to: ${userLocation}. Tap to change.`}
                             onClick={() => {
                                 setEditLocationInput(userLocation);
                                 setShowLocationModal(true);
+                                setLocationUpdateMsg(null);
+                                setLocationUpdateError(null);
                             }}
-                            title="Location"
-                            style={{ width: '40px', height: '40px' }}
                         >
-                            <i className="bi bi-geo-alt-fill fs-6"></i>
+                            <i className="bi bi-geo-alt-fill text-warning flex-shrink-0" style={{ fontSize: '0.825rem' }}></i>
+                            <span className="text-white text-truncate fw-semibold" style={{ fontSize: '0.78rem' }}>{shortLocation}</span>
+                            <i className="bi bi-chevron-down text-warning extra-small opacity-75 flex-shrink-0 ms-auto"></i>
                         </button>
+                    </div>
 
-                        {/* Mobile Cart Quick Icon */}
-                        {isLoggedIn && (
+                    {/* 2. Right Group: Desktop Nav/Profile & Mobile Action Controls */}
+                    <div className="d-flex align-items-center gap-2 ms-2">
+                        
+                        {/* DESKTOP NAVIGATION BAR (Visible on >= 992px) */}
+                        <div className="d-none d-lg-flex align-items-center gap-3">
+                            
+                            {/* Nav Links */}
+                            <ul className="navbar-nav d-flex flex-row align-items-center fw-semibold gap-3 me-2 mb-0">
+                                <li className="nav-item">
+                                    <Link 
+                                        className={`nav-link px-3 py-1.5 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
+                                        to="/"
+                                    >
+                                        <i className="bi bi-house-door-fill text-warning"></i> <span>Home</span>
+                                    </Link>
+                                </li>
+
+                                {isLoggedIn && (
+                                    <li className="nav-item">
+                                        <Link 
+                                            className={`nav-link px-3 py-1.5 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/myorders' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
+                                            to="/myorders"
+                                        >
+                                            <i className="bi bi-receipt-cutoff text-warning"></i> <span>My Orders</span>
+                                        </Link>
+                                    </li>
+                                )}
+
+                                {/* Active Order Live Tracking Badge */}
+                                {isLoggedIn && activeOrder && (
+                                    <li className="nav-item">
+                                        <button 
+                                            type="button"
+                                            className="nav-link btn btn-link text-warning active bg-warning bg-opacity-10 px-3 py-1.5 rounded-pill d-flex align-items-center gap-2 border border-warning border-opacity-40 animate-pulse text-decoration-none"
+                                            onClick={() => setShowOrderTracker(true)}
+                                        >
+                                            <i className="bi bi-bicycle text-warning fs-6"></i>
+                                            <span className="small fw-bold">Live Delivery</span>
+                                            <span className="badge bg-warning text-dark extra-small rounded-pill">Track</span>
+                                        </button>
+                                    </li>
+                                )}
+                            </ul>
+
+                            {/* Cart Button */}
                             <button 
                                 type="button"
-                                className="btn btn-brand rounded-circle p-2 d-flex align-items-center justify-content-center position-relative shadow-sm"
+                                className="btn btn-brand d-inline-flex align-items-center gap-2 px-3.5 py-1.5 shadow-sm rounded-pill font-weight-semibold" 
                                 onClick={() => setCartView(true)}
-                                style={{ width: '40px', height: '40px' }}
                             >
-                                <i className="bi bi-bag-fill fs-6"></i>
+                                <i className="bi bi-bag-check-fill fs-6"></i>
+                                <span>My Cart</span>
                                 {cartItemCount > 0 && (
-                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark extra-small fw-bold border border-dark">
+                                    <span className="badge bg-warning text-dark rounded-pill fw-bold ms-0.5">
+                                        {cartItemCount}
+                                    </span>
+                                )}
+                                {cartTotalPrice > 0 && (
+                                    <span className="extra-small text-white-50 bg-dark bg-opacity-40 px-2 py-0.5 rounded-pill border border-warning border-opacity-30 ms-0.5" style={{ fontSize: '0.78rem' }}>
+                                        ₹{cartTotalPrice}
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* Profile Dropdown Button */}
+                            {isLoggedIn ? (
+                                <div className="position-relative" ref={profileDropdownRef} style={{ zIndex: 1060 }}>
+                                    <button 
+                                        type="button"
+                                        className="btn btn-dark border border-secondary border-opacity-70 text-white rounded-pill px-3 py-1.5 d-flex align-items-center gap-2 shadow-sm hover-border-warning"
+                                        onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                                    >
+                                        <div className="bg-warning text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center shadow-sm" style={{ width: '28px', height: '28px', fontSize: '0.85rem' }}>
+                                            {userName.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="fw-semibold small d-none d-sm-inline text-truncate" style={{ maxWidth: '110px' }}>
+                                            {userName}
+                                        </span>
+                                        <i className="bi bi-chevron-down extra-small text-white-50"></i>
+                                    </button>
+
+                                    {/* Dropdown Menu Modal Card */}
+                                    {profileDropdownOpen && (
+                                        <div 
+                                            className="position-absolute end-0 mt-2 py-2 bg-dark rounded-3 border border-secondary shadow-lg text-start"
+                                            style={{ width: '270px', background: '#0f172a', zIndex: 1070, boxShadow: '0 20px 40px rgba(0, 0, 0, 0.75)' }}
+                                        >
+                                            <div className="px-3 py-2 border-bottom border-secondary border-opacity-50">
+                                                <div className="fw-bold text-white small text-truncate">{userName}</div>
+                                                <div className="text-white-50 extra-small text-truncate">{userProfile?.email || 'Registered User'}</div>
+                                                {userProfile?.phone_number && (
+                                                    <div className="text-warning extra-small mt-0.5"><i className="bi bi-telephone me-1"></i>+91 {userProfile.phone_number}</div>
+                                                )}
+                                            </div>
+
+                                            <div className="px-3 py-2 border-bottom border-secondary border-opacity-30">
+                                                <span className="extra-small text-white-50 d-block mb-1">DELIVERY ADDRESS:</span>
+                                                <span className="extra-small text-white text-truncate d-block fw-medium">
+                                                    <i className="bi bi-geo-alt text-warning me-1"></i>{userLocation}
+                                                </span>
+                                                <button 
+                                                    type="button" 
+                                                    className="btn btn-link text-warning p-0 extra-small text-decoration-none mt-1 fw-semibold"
+                                                    onClick={() => {
+                                                        setProfileDropdownOpen(false);
+                                                        setEditLocationInput(userLocation);
+                                                        setShowLocationModal(true);
+                                                    }}
+                                                >
+                                                    <i className="bi bi-pencil me-1"></i>Change Address
+                                                </button>
+                                            </div>
+
+                                            <div className="py-1">
+                                                <Link 
+                                                    to="/myorders" 
+                                                    className="dropdown-item px-3 py-2 text-white-50 hover-text-warning d-flex align-items-center gap-2.5 small"
+                                                    onClick={() => setProfileDropdownOpen(false)}
+                                                >
+                                                    <i className="bi bi-box-seam text-warning"></i> Order History
+                                                </Link>
+
+                                                {activeOrder && (
+                                                    <button 
+                                                        type="button"
+                                                        className="dropdown-item px-3 py-2 text-warning d-flex align-items-center gap-2.5 small bg-transparent border-0 w-100 text-start"
+                                                        onClick={() => { setShowOrderTracker(true); setProfileDropdownOpen(false); }}
+                                                    >
+                                                        <i className="bi bi-bicycle text-warning"></i> Track Active Order
+                                                    </button>
+                                                )}
+
+                                                <button 
+                                                    type="button"
+                                                    className="dropdown-item px-3 py-2 text-danger d-flex align-items-center gap-2.5 small bg-transparent border-0 w-100 text-start mt-1 border-top border-secondary border-opacity-40"
+                                                    onClick={handleLogout}
+                                                >
+                                                    <i className="bi bi-box-arrow-right"></i> Log Out Account
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="d-flex align-items-center gap-2">
+                                    <Link className="btn btn-outline-warning fw-semibold px-3 py-1.5 rounded-pill small" to="/login">
+                                        Log In
+                                    </Link>
+                                    <Link className="btn btn-brand fw-bold px-3.5 py-1.5 rounded-pill small shadow-sm" to="/signup">
+                                        Sign Up
+                                    </Link>
+                                </div>
+                            )}
+
+                        </div>
+
+                        {/* MOBILE QUICK ACTION BUTTONS (Visible on < 992px) */}
+                        <div className="d-flex align-items-center gap-2 d-lg-none">
+                            {/* Mobile Cart Icon */}
+                            <button 
+                                type="button"
+                                className="mobile-icon-btn position-relative"
+                                onClick={() => setCartView(true)}
+                                aria-label="View Cart"
+                                title="My Cart"
+                            >
+                                <i className="bi bi-bag-fill text-warning fs-6"></i>
+                                {cartItemCount > 0 && (
+                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark extra-small fw-bold border border-dark px-1.5 py-0.5">
                                         {cartItemCount}
                                     </span>
                                 )}
                             </button>
-                        )}
 
-                        <button 
-                            className="navbar-toggler border-0 p-2 text-white bg-dark rounded-3 shadow-none ms-1"
-                            type="button" 
-                            onClick={() => setIsNavExpanded(!isNavExpanded)}
-                            aria-expanded={isNavExpanded}
-                            aria-label="Toggle navigation"
-                        >
-                            <i className={`bi ${isNavExpanded ? 'bi-x-lg' : 'bi-list'} fs-4 text-warning`}></i>
-                        </button>
+                            {/* Mobile Hamburger Menu Toggle Button */}
+                            <button 
+                                className="mobile-icon-btn border-0 text-white"
+                                type="button" 
+                                onClick={() => setIsNavExpanded(!isNavExpanded)}
+                                aria-expanded={isNavExpanded}
+                                aria-label="Toggle navigation"
+                            >
+                                <i className={`bi ${isNavExpanded ? 'bi-x-lg text-danger' : 'bi-list text-warning'} fs-5`}></i>
+                            </button>
+                        </div>
+
                     </div>
+                </div>
+            </nav>
 
-                    {/* Navbar Navigation Items */}
-                    <div className={`collapse navbar-collapse ${isNavExpanded ? 'show mt-3 p-3 bg-dark bg-opacity-95 rounded-3 border border-secondary border-opacity-50 shadow-lg' : ''}`} id="navbarNav">
+            {/* POLISHED MOBILE NAVIGATION DRAWER (Slide-down Menu Overlay) */}
+            {isNavExpanded && (
+                <>
+                    <div className="mobile-nav-backdrop d-lg-none" onClick={() => setIsNavExpanded(false)} />
+                    <div className="mobile-nav-drawer d-lg-none" onClick={(e) => e.stopPropagation()}>
                         
-                        {/* Navigation Links with Even Spacing from Address Selector */}
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold gap-2 gap-lg-3 ms-lg-2 ms-xl-3">
-                            <li className="nav-item">
-                                <Link 
-                                    className={`nav-link px-3.5 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
-                                    to="/"
-                                >
-                                    <i className="bi bi-house-door-fill text-warning"></i> <span>Home</span>
-                                </Link>
-                            </li>
-
-                            {isLoggedIn && (
-                                <li className="nav-item">
-                                    <Link 
-                                        className={`nav-link px-3.5 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/myorders' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
-                                        to="/myorders"
-                                    >
-                                        <i className="bi bi-receipt-cutoff text-warning"></i> <span>My Orders</span>
-                                    </Link>
-                                </li>
-                            )}
-
-                            {/* Active Order Live Tracking Badge */}
-                            {isLoggedIn && activeOrder && (
-                                <li className="nav-item">
-                                    <button 
-                                        type="button"
-                                        className="nav-link btn btn-link text-warning active bg-warning bg-opacity-10 px-3.5 py-2 rounded-pill d-flex align-items-center gap-2 border border-warning border-opacity-40 animate-pulse text-decoration-none ms-lg-1"
-                                        onClick={() => setShowOrderTracker(true)}
-                                    >
-                                        <i className="bi bi-bicycle text-warning fs-6"></i>
-                                        <span className="small fw-bold">Live Delivery</span>
-                                        <span className="badge bg-warning text-dark extra-small rounded-pill">Track</span>
-                                    </button>
-                                </li>
-                            )}
-                        </ul>
-
-                        {/* Right Actions Container */}
-                        <div className={`d-flex align-items-center flex-wrap gap-3 ${isNavExpanded ? 'pt-3 border-top border-secondary border-opacity-40 mt-2' : ''}`}>
+                        {/* User Profile Header in Mobile Drawer */}
+                        <div className="d-flex align-items-center justify-content-between p-3 mb-3 bg-dark bg-opacity-75 rounded-3 border border-secondary border-opacity-50">
                             {isLoggedIn ? (
-                                <div className="d-flex align-items-center gap-3 w-100 w-lg-auto justify-content-between justify-content-lg-end">
-                                    
-                                    {/* Cart Button */}
-                                    <button 
-                                        type="button"
-                                        className="btn btn-brand d-inline-flex align-items-center gap-2.5 px-4 py-2 shadow-sm rounded-pill font-weight-semibold" 
-                                        onClick={() => setCartView(true)}
-                                    >
-                                        <i className="bi bi-bag-check-fill fs-5"></i>
-                                        <span>My Cart</span>
-                                        {cartItemCount > 0 && (
-                                            <span className="badge bg-warning text-dark rounded-pill fw-bold ms-1">
-                                                {cartItemCount}
-                                            </span>
-                                        )}
-                                        {cartTotalPrice > 0 && (
-                                            <span className="extra-small text-white-50 bg-dark bg-opacity-40 px-2 py-0.5 rounded-pill border border-warning border-opacity-30 ms-1" style={{ fontSize: '0.78rem' }}>
-                                                ₹{cartTotalPrice}
-                                            </span>
-                                        )}
-                                    </button>
-
-                                    {/* Profile Dropdown Button */}
-                                    <div className="position-relative" ref={profileDropdownRef} style={{ zIndex: 1060 }}>
-                                        <button 
-                                            type="button"
-                                            className="btn btn-dark border border-secondary border-opacity-70 text-white rounded-pill px-3.5 py-1.5 d-flex align-items-center gap-2.5 shadow-sm hover-border-warning"
-                                            onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                                        >
-                                            <div className="bg-warning text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center shadow-sm" style={{ width: '28px', height: '28px', fontSize: '0.85rem' }}>
-                                                {userName.charAt(0).toUpperCase()}
-                                            </div>
-                                            <span className="fw-semibold small d-none d-sm-inline text-truncate" style={{ maxWidth: '110px' }}>
-                                                {userName}
-                                            </span>
-                                            <i className="bi bi-chevron-down extra-small text-white-50"></i>
-                                        </button>
-
-                                        {/* Dropdown Menu Modal Card */}
-                                        {profileDropdownOpen && (
-                                            <div 
-                                                className="position-absolute end-0 mt-2 py-2 bg-dark rounded-3 border border-secondary shadow-lg text-start"
-                                                style={{ width: '270px', background: '#0f172a', zIndex: 1070, boxShadow: '0 20px 40px rgba(0, 0, 0, 0.75)' }}
-                                            >
-                                                <div className="px-3 py-2 border-bottom border-secondary border-opacity-50">
-                                                    <div className="fw-bold text-white small text-truncate">{userName}</div>
-                                                    <div className="text-white-50 extra-small text-truncate">{userProfile?.email || 'Registered User'}</div>
-                                                    {userProfile?.phone_number && (
-                                                        <div className="text-warning extra-small mt-0.5"><i className="bi bi-telephone me-1"></i>+91 {userProfile.phone_number}</div>
-                                                    )}
-                                                </div>
-
-                                                <div className="px-3 py-2 border-bottom border-secondary border-opacity-30">
-                                                    <span className="extra-small text-white-50 d-block mb-1">DELIVERY ADDRESS:</span>
-                                                    <span className="extra-small text-white text-truncate d-block fw-medium">
-                                                        <i className="bi bi-geo-alt text-warning me-1"></i>{userLocation}
-                                                    </span>
-                                                    <button 
-                                                        type="button" 
-                                                        className="btn btn-link text-warning p-0 extra-small text-decoration-none mt-1 fw-semibold"
-                                                        onClick={() => {
-                                                            setProfileDropdownOpen(false);
-                                                            setEditLocationInput(userLocation);
-                                                            setShowLocationModal(true);
-                                                        }}
-                                                    >
-                                                        <i className="bi bi-pencil me-1"></i>Change Address
-                                                    </button>
-                                                </div>
-
-                                                <div className="py-1">
-                                                    <Link 
-                                                        to="/myorders" 
-                                                        className="dropdown-item px-3 py-2 text-white-50 hover-text-warning d-flex align-items-center gap-2.5 small"
-                                                        onClick={() => setProfileDropdownOpen(false)}
-                                                    >
-                                                        <i className="bi bi-box-seam text-warning"></i> Order History
-                                                    </Link>
-
-                                                    {activeOrder && (
-                                                        <button 
-                                                            type="button"
-                                                            className="dropdown-item px-3 py-2 text-warning d-flex align-items-center gap-2.5 small bg-transparent border-0 w-100 text-start"
-                                                            onClick={() => { setShowOrderTracker(true); setProfileDropdownOpen(false); }}
-                                                        >
-                                                            <i className="bi bi-bicycle text-warning"></i> Track Active Order
-                                                        </button>
-                                                    )}
-
-                                                    <button 
-                                                        type="button"
-                                                        className="dropdown-item px-3 py-2 text-danger d-flex align-items-center gap-2.5 small bg-transparent border-0 w-100 text-start mt-1 border-top border-secondary border-opacity-40"
-                                                        onClick={handleLogout}
-                                                    >
-                                                        <i className="bi bi-box-arrow-right"></i> Log Out Account
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
+                                <div className="d-flex align-items-center gap-2.5 overflow-hidden">
+                                    <div className="bg-warning text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style={{ width: '36px', height: '36px', fontSize: '1rem' }}>
+                                        {userName.charAt(0).toUpperCase()}
                                     </div>
-
+                                    <div className="d-flex flex-column text-truncate">
+                                        <span className="fw-bold text-white small text-truncate">{userName}</span>
+                                        <span className="extra-small text-white-50 text-truncate">{userProfile?.email || 'Logged in user'}</span>
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="d-flex align-items-center gap-3 w-100 w-lg-auto justify-content-end">
-                                    <Link className="btn btn-outline-warning fw-semibold px-3.5 py-2 rounded-pill small" to="/login">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div className="brand-logo-badge d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
+                                        <i className="bi bi-fire text-white fs-6"></i>
+                                    </div>
+                                    <div className="d-flex flex-column">
+                                        <span className="fw-bold text-white small">Welcome to Mern Dine</span>
+                                        <span className="extra-small text-white-50">Sign in to order food</span>
+                                    </div>
+                                </div>
+                            )}
+                            <button type="button" className="btn-close btn-close-white ms-2" onClick={() => setIsNavExpanded(false)}></button>
+                        </div>
+
+                        {/* Location Row inside Drawer */}
+                        <div className="p-2.5 mb-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-30 d-flex align-items-center justify-content-between gap-2">
+                            <div className="d-flex align-items-center gap-2 text-truncate">
+                                <i className="bi bi-geo-alt-fill text-warning flex-shrink-0"></i>
+                                <div className="d-flex flex-column text-truncate">
+                                    <span className="extra-small text-white-50" style={{ fontSize: '0.65rem' }}>DELIVERING TO</span>
+                                    <span className="extra-small text-white text-truncate fw-semibold">{userLocation}</span>
+                                </div>
+                            </div>
+                            <button 
+                                type="button" 
+                                className="btn btn-outline-warning btn-sm extra-small py-1 px-2 rounded-pill flex-shrink-0 fw-semibold"
+                                onClick={() => {
+                                    setIsNavExpanded(false);
+                                    setEditLocationInput(userLocation);
+                                    setShowLocationModal(true);
+                                }}
+                            >
+                                Change
+                            </button>
+                        </div>
+
+                        {/* Drawer Navigation Links */}
+                        <div className="d-flex flex-column gap-2 mb-3">
+                            <Link 
+                                to="/" 
+                                className={`mobile-drawer-item ${location.pathname === '/' ? 'active' : ''}`}
+                                onClick={() => setIsNavExpanded(false)}
+                            >
+                                <i className="bi bi-house-door-fill text-warning fs-5"></i>
+                                <span>Home Menu</span>
+                            </Link>
+
+                            {isLoggedIn && (
+                                <Link 
+                                    to="/myorders" 
+                                    className={`mobile-drawer-item ${location.pathname === '/myorders' ? 'active' : ''}`}
+                                    onClick={() => setIsNavExpanded(false)}
+                                >
+                                    <i className="bi bi-receipt-cutoff text-warning fs-5"></i>
+                                    <span>Order History</span>
+                                </Link>
+                            )}
+
+                            {isLoggedIn && activeOrder && (
+                                <button 
+                                    type="button"
+                                    className="mobile-drawer-item text-warning border-warning border-opacity-40 animate-pulse"
+                                    onClick={() => { setShowOrderTracker(true); setIsNavExpanded(false); }}
+                                >
+                                    <i className="bi bi-bicycle text-warning fs-5"></i>
+                                    <div className="d-flex align-items-center justify-content-between w-100">
+                                        <span>Track Live Delivery</span>
+                                        <span className="badge bg-warning text-dark extra-small rounded-pill">Active Order</span>
+                                    </div>
+                                </button>
+                            )}
+
+                            <button 
+                                type="button"
+                                className="mobile-drawer-item"
+                                onClick={() => { setCartView(true); setIsNavExpanded(false); }}
+                            >
+                                <i className="bi bi-bag-check-fill text-warning fs-5"></i>
+                                <div className="d-flex align-items-center justify-content-between w-100">
+                                    <span>My Cart</span>
+                                    {cartItemCount > 0 ? (
+                                        <span className="badge bg-warning text-dark extra-small rounded-pill fw-bold">
+                                            {cartItemCount} items (₹{cartTotalPrice})
+                                        </span>
+                                    ) : (
+                                        <span className="extra-small text-white-50">Empty</span>
+                                    )}
+                                </div>
+                            </button>
+                        </div>
+
+                        {/* Auth & Logout Actions inside Drawer */}
+                        <div className="pt-2 border-top border-secondary border-opacity-40">
+                            {isLoggedIn ? (
+                                <button 
+                                    type="button" 
+                                    className="btn btn-outline-danger w-100 py-2 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2 small"
+                                    onClick={handleLogout}
+                                >
+                                    <i className="bi bi-box-arrow-right fs-6"></i>
+                                    <span>Log Out Account</span>
+                                </button>
+                            ) : (
+                                <div className="d-flex gap-2">
+                                    <Link 
+                                        to="/login" 
+                                        className="btn btn-outline-warning flex-fill py-2 rounded-3 fw-bold small text-center"
+                                        onClick={() => setIsNavExpanded(false)}
+                                    >
                                         Log In
                                     </Link>
-                                    <Link className="btn btn-brand fw-bold px-4 py-2 rounded-pill small shadow-sm" to="/signup">
+                                    <Link 
+                                        to="/signup" 
+                                        className="btn btn-brand flex-fill py-2 rounded-3 fw-bold small text-center shadow-sm"
+                                        onClick={() => setIsNavExpanded(false)}
+                                    >
                                         Sign Up
                                     </Link>
                                 </div>
@@ -498,8 +626,8 @@ export default function Navbar() {
                         </div>
 
                     </div>
-                </div>
-            </nav>
+                </>
+            )}
 
             {/* Interactive Delivery Location Modal (When user clicks 'Deliver to') */}
             {showLocationModal && (
