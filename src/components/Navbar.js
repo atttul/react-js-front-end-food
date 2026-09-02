@@ -260,8 +260,8 @@ export default function Navbar() {
             <nav className="navbar navbar-expand-lg glass-navbar border-bottom border-secondary border-opacity-25 py-2.5 px-3 px-md-4 shadow">
                 <div className="container-fluid px-1 px-sm-2">
                     
-                    {/* 1. Brand Logo: Clear Spacing from adjacent elements */}
-                    <Link className="navbar-brand d-flex align-items-center gap-2.5 me-3 me-lg-4" to="/">
+                    {/* 1. Brand Logo */}
+                    <Link className="navbar-brand d-flex align-items-center gap-2.5 me-2 me-lg-3" to="/">
                         <div className="brand-logo-badge d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '42px', height: '42px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
                             <i className="bi bi-fire text-white fs-5"></i>
                         </div>
@@ -275,10 +275,10 @@ export default function Navbar() {
                         </div>
                     </Link>
 
-                    {/* 2. Delivery Location Pill: Clear Right Margin from Home Link */}
+                    {/* 2. Delivery Location Pill */}
                     <button 
                         type="button"
-                        className="btn d-none d-md-flex align-items-center gap-2.5 px-3.5 py-1.5 rounded-pill bg-dark bg-opacity-80 border border-secondary border-opacity-60 text-white-50 small cursor-pointer hover-border-warning transition-all shadow-sm ms-2 me-md-3 me-lg-4"
+                        className="btn d-none d-md-flex align-items-center gap-2.5 px-3.5 py-1.5 rounded-pill bg-dark bg-opacity-80 border border-secondary border-opacity-60 text-white-50 small cursor-pointer hover-border-warning transition-all shadow-sm ms-1 me-2 me-lg-3"
                         title={`Current Address: ${userLocation}. Click to edit address.`}
                         onClick={() => {
                             setEditLocationInput(userLocation);
@@ -342,8 +342,8 @@ export default function Navbar() {
                     {/* Navbar Navigation Items */}
                     <div className={`collapse navbar-collapse ${isNavExpanded ? 'show mt-3 p-3 bg-dark bg-opacity-95 rounded-3 border border-secondary border-opacity-50 shadow-lg' : ''}`} id="navbarNav">
                         
-                        {/* Navigation Links with Generous Left Margin from Address Selector */}
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold gap-2 gap-lg-3 ms-lg-4 ms-xl-5">
+                        {/* Navigation Links with Even Spacing from Address Selector */}
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold gap-2 gap-lg-3 ms-lg-2 ms-xl-3">
                             <li className="nav-item">
                                 <Link 
                                     className={`nav-link px-3.5 py-2 rounded-3 d-flex align-items-center gap-2 ${location.pathname === '/' ? 'text-warning active bg-dark bg-opacity-60 fw-bold border border-secondary border-opacity-40' : 'text-white-50'}`} 
