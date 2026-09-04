@@ -234,7 +234,6 @@ export default function MyOrders() {
                             });
 
                             const orderNum = groupedOrders.length - groupIdx;
-                            const isCancelled = group.firstItem?.order_status === 'CANCELLED';
 
                             return (
                                 <div key={group.id || groupIdx} className="card my-orders-card border-0 shadow">
@@ -259,19 +258,46 @@ export default function MyOrders() {
 
                                         {/* Status Badge Pill */}
                                         <div>
-                                            {isCancelled ? (
-                                                <span className="order-status-badge order-status-cancelled">
-                                                    <i className="bi bi-x-circle-fill"></i> Cancelled
-                                                </span>
-                                            ) : isLiveTrackable ? (
-                                                <span className="order-status-badge order-status-live">
-                                                    <i className="bi bi-record-circle-fill text-danger animate-pulse"></i> Out for Delivery
-                                                </span>
-                                            ) : (
-                                                <span className="order-status-badge order-status-delivered">
-                                                    <i className="bi bi-check-circle-fill"></i> Delivered
-                                                </span>
-                                            )}
+                                            {(() => {
+                                                const st = (group.firstItem?.order_status || (isLiveTrackable ? 'OUT_FOR_DELIVERY' : 'DELIVERED')).toUpperCase();
+                                                if (st === 'REJECTED' || st === 'CANCELLED') {
+                                                    return (
+                                                        <span className="badge bg-danger text-white px-3 py-2 rounded-pill">
+                                                            <i className="bi bi-x-circle-fill me-1"></i> Rejected
+                                                        </span>
+                                                    );
+                                                } else if (st === 'PENDING' || st === 'PLACED') {
+                                                    return (
+                                                        <span className="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                                                            <i className="bi bi-hourglass-split me-1"></i> Pending Confirmation
+                                                        </span>
+                                                    );
+                                                } else if (st === 'ACCEPTED') {
+                                                    return (
+                                                        <span className="badge bg-info text-dark px-3 py-2 rounded-pill fw-bold">
+                                                            <i className="bi bi-check2-circle me-1"></i> Accepted
+                                                        </span>
+                                                    );
+                                                } else if (st === 'PREPARING') {
+                                                    return (
+                                                        <span className="badge bg-info text-dark px-3 py-2 rounded-pill fw-bold">
+                                                            <i className="bi bi-fire me-1"></i> Preparing Food
+                                                        </span>
+                                                    );
+                                                } else if (st === 'OUT_FOR_DELIVERY') {
+                                                    return (
+                                                        <span className="badge bg-primary text-white px-3 py-2 rounded-pill fw-bold">
+                                                            <i className="bi bi-bicycle me-1"></i> Out for Delivery
+                                                        </span>
+                                                    );
+                                                } else {
+                                                    return (
+                                                        <span className="badge bg-success text-white px-3 py-2 rounded-pill fw-bold">
+                                                            <i className="bi bi-check-circle-fill me-1"></i> Delivered
+                                                        </span>
+                                                    );
+                                                }
+                                            })()}
                                         </div>
                                     </div>
 

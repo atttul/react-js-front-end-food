@@ -14,6 +14,9 @@ import CashfreePayment from './screens/CashfreePayment.js';
 import PaymentSuccess from './screens/PaymentSuccess.js';
 import OtpVerify from './screens/OtpVerify.js';
 import ForgotPassword from './screens/ForgotPassword.js';
+import AdminLogin from './screens/AdminLogin.js';
+import AdminDashboard from './screens/AdminDashboard.js';
+import AdminUsers from './screens/AdminUsers.js';
 
 export default function App() {
     return (
@@ -28,6 +31,9 @@ export default function App() {
                     <Route exact path="/cashfree-payment" element={<CashfreePayment />} />
                     <Route exact path="/payment-success" element={<PaymentSuccess />} />
                     <Route exact path="/otp-verify" element={<OtpVerify />} />
+                    <Route exact path="/admin/login" element={<AdminLogin />} />
+                    <Route exact path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route exact path="/admin/users" element={<AdminUsers />} />
                 </Routes>
             </Router>
         </CartProvider>

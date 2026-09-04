@@ -13,6 +13,8 @@ export default function OrderTrackerModal({ order, onClose }) {
     const restaurantCoords = [28.6315, 77.2167]; // Restaurant
     const userCoords = [28.6139, 77.2090];       // Customer Location
 
+    const [backendStatus, setBackendStatus] = useState(order?.order_status || 'PENDING');
+
     // Fetch live backend tracking if order ID is present
     useEffect(() => {
         if (order?._id) {
@@ -20,8 +22,13 @@ export default function OrderTrackerModal({ order, onClose }) {
             fetch(`${baseUrl}/order/track/${order._id}`)
                 .then((res) => res.json())
                 .then((data) => {
-                    if (data.success && data.data && typeof data.data.remaining_seconds === 'number') {
-                        setSecondsLeft(data.data.remaining_seconds);
+                    if (data.success && data.data) {
+                        if (typeof data.data.remaining_seconds === 'number') {
+                            setSecondsLeft(data.data.remaining_seconds);
+                        }
+                        if (data.data.status) {
+                            setBackendStatus(data.data.status);
+                        }
                     }
                 })
                 .catch((err) => console.error("Live tracking API error:", err));
@@ -139,10 +146,13 @@ export default function OrderTrackerModal({ order, onClose }) {
 
     // Determine current milestone status
     const getMilestoneStatus = () => {
-        if (secondsLeft === 0) return { label: 'Delivered', icon: 'bi-check-circle-fill text-success' };
-        if (progressPercent >= 40) return { label: 'Out for Delivery (Rider En Route)', icon: 'bi-bicycle text-warning' };
-        if (progressPercent >= 10) return { label: 'Food Prepared & Packed', icon: 'bi-box-seam text-info' };
-        return { label: 'Order Placed & Preparing in Kitchen', icon: 'bi-fire text-danger' };
+        const st = (backendStatus || '').toUpperCase();
+        if (st === 'REJECTED') return { label: 'Order Rejected by Restaurant', icon: 'bi-x-circle-fill text-danger' };
+        if (st === 'PENDING' || st === 'PLACED') return { label: 'Awaiting Restaurant Acceptance', icon: 'bi-hourglass-split text-warning' };
+        if (st === 'DELIVERED' || secondsLeft === 0) return { label: 'Delivered', icon: 'bi-check-circle-fill text-success' };
+        if (st === 'OUT_FOR_DELIVERY' || progressPercent >= 40) return { label: 'Out for Delivery (Rider En Route)', icon: 'bi-bicycle text-warning' };
+        if (st === 'PREPARING' || progressPercent >= 10) return { label: 'Food Prepared & Packed', icon: 'bi-box-seam text-info' };
+        return { label: 'Order Accepted & Preparing', icon: 'bi-fire text-danger' };
     };
 
     const currentStatus = getMilestoneStatus();
