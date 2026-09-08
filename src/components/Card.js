@@ -57,6 +57,8 @@ export default function Card(props) {
                     src={props.foodItem.img}
                     alt={props.foodItem.name}
                     className="food-card-img"
+                    loading="lazy"
+                    decoding="async"
                 />
             </div>
             <div className="card-body d-flex flex-column justify-content-between p-3 flex-grow-1">

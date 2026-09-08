@@ -4,24 +4,84 @@ import Footer from '../components/Footer'
 import Card from '../components/Card'
 import Carousel from '../components/Carousel'
 
-export default function Home() {
-    let [foodCat, setFoodCat] = useState([]);
-    let [foodItem, setFoodItem] = useState([]);
-    let [search, setSearch] = useState('');
-    let [loading, setLoading] = useState(true);
+// Multi-layer caching mechanism (In-memory + sessionStorage + SWR background revalidation)
+let memoryCache = null;
+let memoryCacheTime = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes cache TTL
+const SESSION_CACHE_KEY = 'mern_dine_food_home_cache';
 
-    const loadData = async () => {
-        setLoading(true);
+const getCachedData = () => {
+    const now = Date.now();
+    if (memoryCache && (now - memoryCacheTime < CACHE_TTL_MS)) {
+        return memoryCache;
+    }
+    try {
+        const stored = sessionStorage.getItem(SESSION_CACHE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS)) {
+                memoryCache = parsed.data;
+                memoryCacheTime = parsed.timestamp;
+                return parsed.data;
+            }
+        }
+    } catch (e) {
+        console.warn("Error reading food cache from sessionStorage:", e);
+    }
+    return null;
+};
+
+const setCachedData = (data) => {
+    const now = Date.now();
+    memoryCache = data;
+    memoryCacheTime = now;
+    try {
+        sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({ data, timestamp: now }));
+    } catch (e) {
+        console.warn("Error saving food cache to sessionStorage:", e);
+    }
+};
+
+export default function Home() {
+    let [foodCat, setFoodCat] = useState(() => {
+        const cached = getCachedData();
+        return cached ? cached.foodCategories || [] : [];
+    });
+    let [foodItem, setFoodItem] = useState(() => {
+        const cached = getCachedData();
+        return cached ? cached.foodItems || [] : [];
+    });
+    let [search, setSearch] = useState('');
+    let [loading, setLoading] = useState(() => {
+        const cached = getCachedData();
+        return !cached;
+    });
+
+    const loadData = async (isBackgroundRevalidate = false) => {
+        const cached = getCachedData();
+        if (cached) {
+            setFoodItem(cached.foodItems || []);
+            setFoodCat(cached.foodCategories || []);
+            setLoading(false);
+            if (!isBackgroundRevalidate) return;
+        } else {
+            setLoading(true);
+        }
+
         const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
-        const cacheBuster = `?t=${Date.now()}`;
 
         try {
-            const res = await fetch(`${baseUrl}/food/home-data${cacheBuster}`);
+            const res = await fetch(`${baseUrl}/food/home-data`);
             if (res.ok) {
                 const json = await res.json();
                 if (json.success && json.data) {
-                    setFoodItem(json.data.foodItems || []);
-                    setFoodCat(json.data.foodCategories || []);
+                    const freshData = {
+                        foodItems: json.data.foodItems || [],
+                        foodCategories: json.data.foodCategories || []
+                    };
+                    setFoodItem(freshData.foodItems);
+                    setFoodCat(freshData.foodCategories);
+                    setCachedData(freshData);
                     setLoading(false);
                     return;
                 }
@@ -32,14 +92,19 @@ export default function Home() {
 
         try {
             const [itemsRes, catRes] = await Promise.all([
-                fetch(`${baseUrl}/food/data${cacheBuster}`),
-                fetch(`${baseUrl}/food/categories${cacheBuster}`)
+                fetch(`${baseUrl}/food/data`),
+                fetch(`${baseUrl}/food/categories`)
             ]);
             if (itemsRes.ok && catRes.ok) {
                 const itemsJson = await itemsRes.json();
                 const catJson = await catRes.json();
-                setFoodItem(itemsJson.data || []);
-                setFoodCat(catJson.data || []);
+                const freshData = {
+                    foodItems: itemsJson.data || [],
+                    foodCategories: catJson.data || []
+                };
+                setFoodItem(freshData.foodItems);
+                setFoodCat(freshData.foodCategories);
+                setCachedData(freshData);
             }
         } catch (err) {
             console.error("Error loading food data:", err);
@@ -49,7 +114,12 @@ export default function Home() {
     };
 
     useEffect(() => {
-        loadData();
+        const cached = getCachedData();
+        if (!cached) {
+            loadData(false);
+        } else {
+            loadData(true);
+        }
     }, []);
     
     return (
