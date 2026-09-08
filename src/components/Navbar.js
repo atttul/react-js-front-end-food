@@ -257,21 +257,21 @@ export default function Navbar() {
 
     return (
         <header className="sticky-top" style={{ zIndex: 1050 }}>
-            <nav className="navbar glass-navbar border-bottom border-secondary border-opacity-25 py-2 px-2.5 px-md-4 shadow-sm">
-                <div className="container-fluid px-0 px-sm-2 d-flex align-items-center justify-content-between">
+            <nav className="navbar glass-navbar border-bottom border-secondary border-opacity-25 py-1.5 px-2 px-md-4 shadow-sm">
+                <div className="container-fluid px-0 px-sm-2 d-flex align-items-center justify-content-between flex-nowrap">
                     
                     {/* 1. Left Group: Brand Logo & Compact Location Button */}
-                    <div className="d-flex align-items-center gap-1.5 gap-sm-2.5 overflow-hidden">
+                    <div className="d-flex align-items-center gap-1 gap-sm-2 overflow-hidden flex-nowrap me-1 me-sm-2 flex-shrink-1" style={{ minWidth: 0 }}>
                         {/* Brand Logo */}
-                        <Link className="navbar-brand d-flex align-items-center gap-2 m-0 p-0" to="/">
-                            <div className="brand-logo-badge d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '38px', height: '38px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
+                        <Link className="navbar-brand d-flex align-items-center gap-1.5 m-0 p-0 flex-shrink-0" to="/">
+                            <div className="brand-logo-badge d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '34px', height: '34px', background: 'linear-gradient(135deg, #fd5631 0%, #d9381e 100%)' }}>
                                 <i className="bi bi-fire text-white fs-6"></i>
                             </div>
                             <div className="d-flex flex-column justify-content-center">
-                                <span className="fs-5 fw-extrabold text-white tracking-tight" style={{ lineHeight: '1.1' }}>
+                                <span className="fs-6 fw-extrabold text-white tracking-tight" style={{ lineHeight: '1.1' }}>
                                     Mern <span style={{ color: 'var(--primary-color)' }}>Dine</span>
                                 </span>
-                                <span className="extra-small text-warning fw-bold tracking-wider d-none d-sm-inline" style={{ fontSize: '0.6rem', letterSpacing: '0.08em' }}>
+                                <span className="extra-small text-warning fw-bold tracking-wider d-none d-sm-inline" style={{ fontSize: '0.55rem', letterSpacing: '0.08em' }}>
                                     FOOD EXPRESS
                                 </span>
                             </div>
@@ -280,7 +280,7 @@ export default function Navbar() {
                         {/* Compact Location Pill Button (Mobile & Desktop) */}
                         <button 
                             type="button"
-                            className="btn mobile-location-btn d-flex align-items-center gap-1.5 ms-1 ms-sm-2 text-truncate"
+                            className="btn mobile-location-btn d-flex align-items-center gap-1 text-truncate flex-shrink-1"
                             title={`Deliver to: ${userLocation}. Tap to change.`}
                             onClick={() => {
                                 setEditLocationInput(userLocation);
@@ -289,14 +289,14 @@ export default function Navbar() {
                                 setLocationUpdateError(null);
                             }}
                         >
-                            <i className="bi bi-geo-alt-fill text-warning flex-shrink-0" style={{ fontSize: '0.825rem' }}></i>
-                            <span className="text-white text-truncate fw-semibold" style={{ fontSize: '0.78rem' }}>{shortLocation}</span>
+                            <i className="bi bi-geo-alt-fill text-warning flex-shrink-0" style={{ fontSize: '0.75rem' }}></i>
+                            <span className="text-white text-truncate fw-semibold" style={{ fontSize: '0.72rem' }}>{shortLocation}</span>
                             <i className="bi bi-chevron-down text-warning extra-small opacity-75 flex-shrink-0 ms-auto"></i>
                         </button>
                     </div>
 
                     {/* 2. Right Group: Desktop Nav/Profile & Mobile Action Controls */}
-                    <div className="d-flex align-items-center gap-2 ms-2">
+                    <div className="d-flex align-items-center gap-1.5 gap-sm-2 flex-shrink-0 flex-nowrap ms-auto">
                         
                         {/* DESKTOP NAVIGATION BAR (Visible on >= 992px) */}
                         <div className="d-none d-lg-flex align-items-center gap-3">

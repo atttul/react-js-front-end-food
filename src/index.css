@@ -44,28 +44,30 @@ code {
   background: rgba(15, 23, 42, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 30px;
-  padding: 0.35rem 0.65rem;
+  padding: 0.25rem 0.5rem;
   color: #f8fafc;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   transition: all 0.2s ease;
-  max-width: 125px;
+  max-width: 105px;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 @media (min-width: 360px) {
   .mobile-location-btn {
-    max-width: 150px;
+    max-width: 130px;
   }
 }
 
 @media (min-width: 390px) {
   .mobile-location-btn {
-    max-width: 175px;
+    max-width: 155px;
   }
 }
 
 @media (min-width: 414px) {
   .mobile-location-btn {
-    max-width: 200px;
+    max-width: 180px;
   }
 }
 
@@ -77,9 +79,9 @@ code {
 
 /* Mobile Icon Action Button */
 .mobile-icon-btn {
-  width: 38px;
-  height: 38px;
-  min-width: 38px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -89,6 +91,8 @@ code {
   color: #f8fafc;
   transition: all 0.2s ease;
   cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .mobile-icon-btn:hover,

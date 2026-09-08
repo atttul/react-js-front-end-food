@@ -5,37 +5,68 @@ export default function OrderTrackerModal({ order, onClose }) {
     const mapInstance = useRef(null);
     const riderMarkerRef = useRef(null);
 
-    // Initial 30 mins countdown (1800 seconds)
     const [secondsLeft, setSecondsLeft] = useState(1800);
     const [progressPercent, setProgressPercent] = useState(0);
+    const [backendStatus, setBackendStatus] = useState(order?.order_status || 'PENDING');
+    const [isPendingAcceptance, setIsPendingAcceptance] = useState(
+        !order?.order_status || order.order_status === 'PENDING' || order.order_status === 'PLACED'
+    );
+    const [autoAcceptRemainingSeconds, setAutoAcceptRemainingSeconds] = useState(180);
 
-    // Default coordinates (e.g. Connaught Place, New Delhi area)
-    const restaurantCoords = [28.6315, 77.2167]; // Restaurant
+    const restaurantCoords = [28.6315, 77.2167]; // Kitchen
     const userCoords = [28.6139, 77.2090];       // Customer Location
 
-    const [backendStatus, setBackendStatus] = useState(order?.order_status || 'PENDING');
-
-    // Fetch live backend tracking if order ID is present
-    useEffect(() => {
-        if (order?._id) {
+    // 1. Fetch live backend tracking
+    const fetchLiveTracking = async () => {
+        if (!order?._id) return;
+        try {
             const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
-            fetch(`${baseUrl}/order/track/${order._id}`)
-                .then((res) => res.json())
-                .then((data) => {
-                    if (data.success && data.data) {
-                        if (typeof data.data.remaining_seconds === 'number') {
-                            setSecondsLeft(data.data.remaining_seconds);
-                        }
-                        if (data.data.status) {
-                            setBackendStatus(data.data.status);
-                        }
-                    }
-                })
-                .catch((err) => console.error("Live tracking API error:", err));
+            const res = await fetch(`${baseUrl}/order/track/${order._id}`);
+            const data = await res.json();
+            if (data.success && data.data) {
+                const info = data.data;
+                setBackendStatus(info.status || 'PENDING');
+                setIsPendingAcceptance(!!info.is_pending_acceptance);
+
+                if (typeof info.remaining_seconds === 'number') {
+                    setSecondsLeft(info.remaining_seconds);
+                }
+                if (typeof info.progress_percentage === 'number') {
+                    setProgressPercent(info.progress_percentage);
+                }
+                if (typeof info.auto_accept_remaining_seconds === 'number') {
+                    setAutoAcceptRemainingSeconds(info.auto_accept_remaining_seconds);
+                }
+            }
+        } catch (err) {
+            console.warn("Live tracking API warning:", err);
         }
+    };
+
+    // Poll live tracking API every 3 seconds
+    useEffect(() => {
+        fetchLiveTracking();
+        const pollInterval = setInterval(fetchLiveTracking, 3000);
+        return () => clearInterval(pollInterval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [order]);
 
-    // Calculate current rider position along route based on progress percentage
+    // 2. Local 1-second countdown tick
+    useEffect(() => {
+        const timer = setInterval(() => {
+            if (isPendingAcceptance || backendStatus === 'PENDING' || backendStatus === 'PLACED') {
+                setAutoAcceptRemainingSeconds(prev => (prev > 0 ? prev - 1 : 0));
+                setSecondsLeft(1800);
+                setProgressPercent(0);
+            } else if (['ACCEPTED', 'PREPARING', 'OUT_FOR_DELIVERY'].includes(backendStatus)) {
+                setSecondsLeft(prev => (prev > 1 ? prev - 1 : 0));
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [backendStatus, isPendingAcceptance]);
+
+    // Calculate rider position along route
     const getCurrentRiderCoords = (percent) => {
         const fraction = Math.min(Math.max(percent / 100, 0), 1);
         const lat = restaurantCoords[0] + (userCoords[0] - restaurantCoords[0]) * fraction;
@@ -43,40 +74,17 @@ export default function OrderTrackerModal({ order, onClose }) {
         return [lat, lng];
     };
 
-    // Countdown Timer logic (30 minutes = 1800s)
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setSecondsLeft((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, []);
-
-    // Update progress percentage (0% to 100% over 30 mins)
-    useEffect(() => {
-        const elapsed = 1800 - secondsLeft;
-        const percent = Math.min(100, Math.floor((elapsed / 1800) * 100));
-        setProgressPercent(percent);
-    }, [secondsLeft]);
-
-    // Initialize Leaflet Map
+    // Leaflet Map Initialization
     useEffect(() => {
         if (!mapRef.current) return;
         const L = window.L;
         if (!L) return;
 
         if (!mapInstance.current) {
-            // Create Leaflet Map instance
             const map = L.map(mapRef.current).setView(restaurantCoords, 14);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                attribution: '&copy; OpenStreetMap'
             }).addTo(map);
 
             // Restaurant Marker
@@ -86,7 +94,7 @@ export default function OrderTrackerModal({ order, onClose }) {
                 iconSize: [80, 30]
             });
             L.marker(restaurantCoords, { icon: restaurantIcon }).addTo(map)
-                .bindPopup("<b>Mern Dine Kitchen</b><br/>Preparing your order.");
+                .bindPopup("<b>Mern Dine Central Kitchen</b><br/>Preparing your order.");
 
             // User Destination Marker
             const userIcon = L.divIcon({
@@ -118,7 +126,6 @@ export default function OrderTrackerModal({ order, onClose }) {
             mapInstance.current = map;
         }
 
-        // Cleanup
         return () => {
             if (mapInstance.current) {
                 mapInstance.current.remove();
@@ -128,38 +135,75 @@ export default function OrderTrackerModal({ order, onClose }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Move Rider Marker as progress updates
+    // Update rider marker on progress changes
     useEffect(() => {
         if (riderMarkerRef.current) {
-            const currentRiderCoords = getCurrentRiderCoords(progressPercent);
-            riderMarkerRef.current.setLatLng(currentRiderCoords);
+            const coords = getCurrentRiderCoords(progressPercent);
+            riderMarkerRef.current.setLatLng(coords);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [progressPercent]);
 
-    // Format MM:SS
+    // Format seconds into MM:SS
     const formatTime = (totalSeconds) => {
-        const mins = Math.floor(totalSeconds / 60);
-        const secs = totalSeconds % 60;
+        const mins = Math.floor(Math.max(0, totalSeconds) / 60);
+        const secs = Math.floor(Math.max(0, totalSeconds)) % 60;
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Determine current milestone status
-    const getMilestoneStatus = () => {
+    // Status Banner Info Helper
+    const getStatusDetails = () => {
         const st = (backendStatus || '').toUpperCase();
-        if (st === 'REJECTED') return { label: 'Order Rejected by Restaurant', icon: 'bi-x-circle-fill text-danger' };
-        if (st === 'PENDING' || st === 'PLACED') return { label: 'Awaiting Restaurant Acceptance', icon: 'bi-hourglass-split text-warning' };
-        if (st === 'DELIVERED' || secondsLeft === 0) return { label: 'Delivered', icon: 'bi-check-circle-fill text-success' };
-        if (st === 'OUT_FOR_DELIVERY' || progressPercent >= 40) return { label: 'Out for Delivery (Rider En Route)', icon: 'bi-bicycle text-warning' };
-        if (st === 'PREPARING' || progressPercent >= 10) return { label: 'Food Prepared & Packed', icon: 'bi-box-seam text-info' };
-        return { label: 'Order Accepted & Preparing', icon: 'bi-fire text-danger' };
+        if (st === 'REJECTED') {
+            return {
+                title: 'Order Rejected',
+                badgeText: 'Rejected by Restaurant',
+                badgeClass: 'border-danger text-danger bg-danger bg-opacity-10',
+                icon: 'bi-x-circle-fill text-danger',
+                note: 'The restaurant was unable to accept your order.'
+            };
+        }
+        if (st === 'DELIVERED' || (secondsLeft === 0 && !isPendingAcceptance)) {
+            return {
+                title: 'Order Delivered!',
+                badgeText: 'Delivered',
+                badgeClass: 'border-success text-success bg-success bg-opacity-10',
+                icon: 'bi-check-circle-fill text-success',
+                note: 'Food delivered! Enjoy your delicious meal.'
+            };
+        }
+        if (isPendingAcceptance || st === 'PENDING' || st === 'PLACED') {
+            return {
+                title: 'Awaiting Restaurant Acceptance',
+                badgeText: `Auto-accepts in ${formatTime(autoAcceptRemainingSeconds)} Mins`,
+                badgeClass: 'border-warning text-warning bg-warning bg-opacity-10 animate-pulse',
+                icon: 'bi-hourglass-split text-warning',
+                note: '30-minute delivery clock starts automatically as soon as restaurant accepts your order!'
+            };
+        }
+        if (st === 'OUT_FOR_DELIVERY' || progressPercent >= 40) {
+            return {
+                title: 'Rider Out for Delivery',
+                badgeText: 'Out for Delivery',
+                badgeClass: 'border-warning text-warning bg-warning bg-opacity-10',
+                icon: 'bi-bicycle text-warning',
+                note: 'Rider is en route to your delivery location!'
+            };
+        }
+        return {
+            title: 'Order Accepted & Preparing',
+            badgeText: 'Accepted by Kitchen',
+            badgeClass: 'border-success text-success bg-success bg-opacity-10',
+            icon: 'bi-fire text-danger',
+            note: 'Order accepted! Chef is preparing your meal.'
+        };
     };
 
-    const currentStatus = getMilestoneStatus();
+    const statusDetails = getStatusDetails();
 
     return (
         <div className="custom-modal-overlay">
-            <div className="custom-modal-content p-4 text-white" style={{ maxWidth: '850px', width: '92%' }}>
+            <div className="custom-modal-content p-4 text-white shadow-lg" style={{ maxWidth: '850px', width: '92%' }}>
                 {/* Header */}
                 <div className="d-flex align-items-center justify-content-between border-bottom border-secondary pb-3 mb-3">
                     <div className="d-flex align-items-center gap-2">
@@ -172,35 +216,49 @@ export default function OrderTrackerModal({ order, onClose }) {
                     <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
                 </div>
 
-                {/* Countdown & ETA Banner */}
-                <div className="bg-dark p-3 rounded-3 border border-secondary mb-4 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 shadow-sm">
+                {/* Countdown & Status Banner */}
+                <div className="bg-dark p-3 rounded-3 border border-secondary mb-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 shadow-sm">
                     <div>
-                        <span className="text-muted small d-block">Estimated Arrival Time:</span>
+                        <span className="text-muted extra-small d-block">
+                            {isPendingAcceptance ? 'Delivery Timer (On Hold):' : 'Estimated Arrival Time:'}
+                        </span>
                         <h4 className="fw-bold text-warning mb-0 d-flex align-items-center gap-2">
                             <i className="bi bi-clock-history"></i> {formatTime(secondsLeft)} Mins
                         </h4>
                     </div>
 
                     <div className="text-sm-end">
-                        <span className="badge bg-dark border border-warning text-warning px-3 py-2 fs-6 rounded-pill">
-                            <i className={`bi ${currentStatus.icon} me-1`}></i> {currentStatus.label}
+                        <span className={`badge border px-3 py-2 fs-6 rounded-pill d-inline-flex align-items-center gap-1.5 ${statusDetails.badgeClass}`}>
+                            <i className={`bi ${statusDetails.icon}`}></i> {statusDetails.badgeText}
                         </span>
                     </div>
                 </div>
 
+                {/* Auto-Acceptance & Status Note Banner */}
+                <div className="p-2.5 rounded-3 border border-warning border-opacity-30 bg-warning bg-opacity-10 mb-3 small d-flex align-items-center gap-2">
+                    <i className="bi bi-info-circle-fill text-warning fs-6 flex-shrink-0"></i>
+                    <span className="text-white-50 extra-small">{statusDetails.note}</span>
+                </div>
+
                 {/* Milestones Stepper */}
                 <div className="mb-4">
-                    <div className="d-flex justify-content-between text-center small mb-2 text-muted fw-semibold">
-                        <span className={progressPercent >= 0 ? "text-success" : ""}>1. Placed</span>
-                        <span className={progressPercent >= 15 ? "text-success" : ""}>2. Preparing</span>
-                        <span className={progressPercent >= 40 ? "text-warning" : ""}>3. On the Way</span>
-                        <span className={progressPercent >= 100 ? "text-success" : ""}>4. Delivered</span>
+                    <div className="d-flex justify-content-between text-center extra-small mb-2 text-muted fw-semibold">
+                        <span className={isPendingAcceptance || backendStatus ? "text-success fw-bold" : ""}>1. Placed</span>
+                        <span className={!isPendingAcceptance && ['ACCEPTED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED'].includes(backendStatus) ? "text-success fw-bold" : (isPendingAcceptance ? "text-warning" : "")}>
+                            2. Accepted {isPendingAcceptance && `(${formatTime(autoAcceptRemainingSeconds)})`}
+                        </span>
+                        <span className={['OUT_FOR_DELIVERY', 'DELIVERED'].includes(backendStatus) || progressPercent >= 40 ? "text-warning fw-bold" : ""}>
+                            3. On the Way
+                        </span>
+                        <span className={backendStatus === 'DELIVERED' || (secondsLeft === 0 && !isPendingAcceptance) ? "text-success fw-bold" : ""}>
+                            4. Delivered
+                        </span>
                     </div>
                     <div className="progress bg-dark border border-secondary" style={{ height: '10px' }}>
                         <div 
                             className="progress-bar progress-bar-striped progress-bar-animated bg-warning" 
                             role="progressbar" 
-                            style={{ width: `${Math.max(5, progressPercent)}%` }} 
+                            style={{ width: `${isPendingAcceptance ? 15 : Math.max(15, progressPercent)}%` }} 
                         />
                     </div>
                 </div>
@@ -208,11 +266,11 @@ export default function OrderTrackerModal({ order, onClose }) {
                 {/* Leaflet GPS Map View */}
                 <div 
                     ref={mapRef} 
-                    className="rounded-3 border border-secondary mb-4 overflow-hidden" 
-                    style={{ height: '280px', width: '100%', zIndex: 1 }} 
+                    className="rounded-3 border border-secondary mb-4 overflow-hidden shadow-sm" 
+                    style={{ height: '260px', width: '100%', zIndex: 1 }} 
                 />
 
-                {/* Driver & Support Info */}
+                {/* Driver & Delivery Address Info */}
                 <div className="row g-3">
                     <div className="col-12 col-md-7">
                         <div className="p-3 bg-dark rounded-3 border border-secondary d-flex align-items-center justify-content-between">
@@ -233,9 +291,9 @@ export default function OrderTrackerModal({ order, onClose }) {
 
                     <div className="col-12 col-md-5">
                         <div className="p-3 bg-dark rounded-3 border border-secondary h-100 d-flex flex-column justify-content-center">
-                            <small className="text-muted d-block">Delivery Address:</small>
+                            <small className="text-muted d-block">Delivery Target:</small>
                             <span className="fw-semibold text-white small text-truncate">
-                                <i className="bi bi-pin-map-fill text-danger me-1"></i> {order?.size ? `Option: ${order.size}` : 'Customer Address'}
+                                <i className="bi bi-pin-map-fill text-danger me-1"></i> {order?.product_name ? `${order.product_name} (${order.size || 'Standard'})` : 'Customer Address'}
                             </span>
                         </div>
                     </div>
