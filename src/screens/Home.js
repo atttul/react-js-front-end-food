@@ -56,6 +56,30 @@ export default function Home() {
         const cached = getCachedData();
         return !cached;
     });
+    let [cartItems, setCartItems] = useState([]);
+
+    const fetchCartItems = async () => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            setCartItems([]);
+            return;
+        }
+        try {
+            const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
+            let res = await fetch(`${baseUrl}/fetch/cart/items`, {
+                headers: {
+                    "authorization": `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (res.ok) {
+                let cartData = await res.json();
+                setCartItems(cartData.data || []);
+            }
+        } catch (e) {
+            console.warn("Home cart fetch error:", e);
+        }
+    };
 
     const loadData = async (isBackgroundRevalidate = false) => {
         const cached = getCachedData();
@@ -120,6 +144,17 @@ export default function Home() {
         } else {
             loadData(true);
         }
+
+        fetchCartItems();
+
+        const handleCartUpdate = () => {
+            fetchCartItems();
+        };
+
+        window.addEventListener('cartUpdated', handleCartUpdate);
+        return () => {
+            window.removeEventListener('cartUpdated', handleCartUpdate);
+        };
     }, []);
     
     return (
@@ -192,6 +227,7 @@ export default function Home() {
                                                     <Card 
                                                         foodItem={filteredItem}
                                                         options={filteredItem.options[0]}
+                                                        isInCart={cartItems.some(item => item.product_name === filteredItem.name)}
                                                     />
                                                 </div>
                                             ))
