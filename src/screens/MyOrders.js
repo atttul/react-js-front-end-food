@@ -81,21 +81,24 @@ export default function MyOrders() {
         const groups = {};
         ordersList.forEach((item) => {
             const itemDate = item.created_at ? new Date(item.created_at) : new Date();
-            const minuteKey = item.created_at
-                ? `${itemDate.getFullYear()}-${itemDate.getMonth() + 1}-${itemDate.getDate()} ${itemDate.getHours()}:${itemDate.getMinutes()}`
-                : (item._id ? item._id.substring(0, 18) : 'single_batch');
+            const groupKey = item.order_id
+                ? item.order_id
+                : (item.created_at
+                    ? `${itemDate.getFullYear()}-${itemDate.getMonth() + 1}-${itemDate.getDate()} ${itemDate.getHours()}:${itemDate.getMinutes()}`
+                    : (item._id ? item._id.substring(0, 18) : 'single_batch'));
 
-            if (!groups[minuteKey]) {
-                groups[minuteKey] = {
-                    id: item._id || minuteKey,
+            if (!groups[groupKey]) {
+                groups[groupKey] = {
+                    id: item.order_id || item._id || groupKey,
+                    order_id: item.order_id || item._id || groupKey,
                     date: itemDate,
                     items: [],
                     totalAmount: 0,
                     firstItem: item
                 };
             }
-            groups[minuteKey].items.push(item);
-            groups[minuteKey].totalAmount += (item.total_amount || 0);
+            groups[groupKey].items.push(item);
+            groups[groupKey].totalAmount += (item.total_amount || 0);
         });
 
         return Object.values(groups).sort((a, b) => b.date - a.date);
@@ -246,8 +249,8 @@ export default function MyOrders() {
                                                     Order #{orderNum}
                                                 </h5>
                                                 <span className="text-white-50 extra-small">•</span>
-                                                <span className="text-white-50 extra-small font-monospace">
-                                                    ID: {String(group.id).substring(0, 10)}
+                                                <span className="text-white-50 extra-small font-monospace" title={group.order_id || group.id}>
+                                                    ID: #{group.order_id || group.firstItem?.order_id || String(group.id).substring(0, 12)}
                                                 </span>
                                             </div>
                                             <div className="text-white-50 extra-small d-flex align-items-center gap-1.5">
@@ -374,7 +377,12 @@ export default function MyOrders() {
                                                 <button 
                                                     type="button"
                                                     className="btn btn-warning btn-sm fw-bold rounded-pill px-3.5 py-1.5 shadow extra-small d-flex align-items-center gap-1.5"
-                                                    onClick={() => setSelectedTrackOrder(group.firstItem)}
+                                                    onClick={() => setSelectedTrackOrder({
+                                                        ...group.firstItem,
+                                                        order_id: group.order_id || group.firstItem.order_id || group.firstItem._id,
+                                                        total_amount: group.totalAmount || group.firstItem.total_amount,
+                                                        product_name: group.items.map(i => i.product_name).join(', ') || group.firstItem.product_name
+                                                    })}
                                                 >
                                                     <i className="bi bi-geo-alt-fill"></i> Track Delivery
                                                 </button>

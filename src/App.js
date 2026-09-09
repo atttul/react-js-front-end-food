@@ -30,6 +30,7 @@ export default function App() {
                     <Route exact path='/myorders' element={<MyOrders />} />
                     <Route exact path="/cashfree-payment" element={<CashfreePayment />} />
                     <Route exact path="/payment-success" element={<PaymentSuccess />} />
+                    <Route path="/payment-success/*" element={<PaymentSuccess />} />
                     <Route exact path="/otp-verify" element={<OtpVerify />} />
                     <Route exact path="/admin/login" element={<AdminLogin />} />
                     <Route exact path="/admin/dashboard" element={<AdminDashboard />} />

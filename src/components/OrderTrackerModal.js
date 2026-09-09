@@ -13,15 +13,20 @@ export default function OrderTrackerModal({ order, onClose }) {
     );
     const [autoAcceptRemainingSeconds, setAutoAcceptRemainingSeconds] = useState(180);
 
+    const [liveOrderId, setLiveOrderId] = useState(order?.order_id || order?.orderId || order?._id || '');
+    const [liveAmount, setLiveAmount] = useState(order?.total_amount || order?.order_amount || order?.amount || 0);
+
+    const targetOrderId = order?._id || order?.order_id || order?.orderId || liveOrderId;
+
     const restaurantCoords = [28.6315, 77.2167]; // Kitchen
     const userCoords = [28.6139, 77.2090];       // Customer Location
 
     // 1. Fetch live backend tracking
     const fetchLiveTracking = async () => {
-        if (!order?._id) return;
+        if (!targetOrderId) return;
         try {
             const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
-            const res = await fetch(`${baseUrl}/order/track/${order._id}`);
+            const res = await fetch(`${baseUrl}/order/track/${targetOrderId}`);
             const data = await res.json();
             if (data.success && data.data) {
                 const info = data.data;
@@ -37,14 +42,26 @@ export default function OrderTrackerModal({ order, onClose }) {
                 if (typeof info.auto_accept_remaining_seconds === 'number') {
                     setAutoAcceptRemainingSeconds(info.auto_accept_remaining_seconds);
                 }
+                if (info.order_id || info.orderId) {
+                    setLiveOrderId(info.order_id || info.orderId);
+                }
+                if (info.total_amount || info.order_amount) {
+                    setLiveAmount(info.total_amount || info.order_amount);
+                }
             }
         } catch (err) {
             console.warn("Live tracking API warning:", err);
         }
     };
 
-    // Poll live tracking API every 3 seconds
+    // Poll live tracking API every 3 seconds & sync order prop
     useEffect(() => {
+        if (order?.order_id || order?.orderId || order?._id) {
+            setLiveOrderId(order?.order_id || order?.orderId || order?._id);
+        }
+        if (order?.total_amount || order?.order_amount || order?.amount) {
+            setLiveAmount(order?.total_amount || order?.order_amount || order?.amount);
+        }
         fetchLiveTracking();
         const pollInterval = setInterval(fetchLiveTracking, 3000);
         return () => clearInterval(pollInterval);
@@ -201,6 +218,9 @@ export default function OrderTrackerModal({ order, onClose }) {
 
     const statusDetails = getStatusDetails();
 
+    const displayOrderId = liveOrderId || order?.order_id || order?.orderId || order?._id || 'N/A';
+    const displayAmount = liveAmount || order?.total_amount || order?.order_amount || order?.amount || 0;
+
     return (
         <div className="custom-modal-overlay">
             <div className="custom-modal-content p-4 text-white shadow-lg" style={{ maxWidth: '850px', width: '92%' }}>
@@ -210,10 +230,45 @@ export default function OrderTrackerModal({ order, onClose }) {
                         <i className="bi bi-geo-alt-fill text-warning fs-3"></i>
                         <div>
                             <h5 className="fw-bold mb-0">Live GPS Order Tracking</h5>
-                            <small className="text-muted">Item: {order?.product_name || 'Food Order'} | Total ETA: 30 Mins</small>
+                            <small className="text-muted">Item: {order?.product_name || 'Food Order'} • Amount: ₹{displayAmount}/- | Total ETA: 30 Mins</small>
                         </div>
                     </div>
                     <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
+                </div>
+
+                {/* Order ID & Ordered Amount Highlight Card */}
+                <div className="row g-2 mb-3">
+                    <div className="col-12 col-sm-7">
+                        <div className="bg-dark p-2.5 px-3 rounded-3 border border-secondary d-flex align-items-center gap-2.5 h-100 shadow-sm">
+                            <div className="p-2 rounded-2 bg-warning bg-opacity-15 text-warning flex-shrink-0">
+                                <i className="bi bi-upc-scan fs-5"></i>
+                            </div>
+                            <div className="overflow-hidden">
+                                <span className="text-muted extra-small text-uppercase fw-bold d-block" style={{ letterSpacing: '0.5px' }}>Order ID</span>
+                                <span className="fw-bold text-white small text-truncate d-block font-monospace" title={displayOrderId}>
+                                    #{displayOrderId}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-12 col-sm-5">
+                        <div className="bg-dark p-2.5 px-3 rounded-3 border border-secondary d-flex align-items-center justify-content-between h-100 shadow-sm">
+                            <div className="d-flex align-items-center gap-2.5">
+                                <div className="p-2 rounded-2 bg-success bg-opacity-15 text-success flex-shrink-0">
+                                    <i className="bi bi-currency-rupee fs-5"></i>
+                                </div>
+                                <div>
+                                    <span className="text-muted extra-small text-uppercase fw-bold d-block" style={{ letterSpacing: '0.5px' }}>Ordered Amount</span>
+                                    <span className="fw-bold text-success fs-5">
+                                        ₹{displayAmount}/-
+                                    </span>
+                                </div>
+                            </div>
+                            <span className="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-2 py-1 extra-small fw-semibold">
+                                <i className="bi bi-check-circle-fill me-1"></i> Paid
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Countdown & Status Banner */}
@@ -291,10 +346,16 @@ export default function OrderTrackerModal({ order, onClose }) {
 
                     <div className="col-12 col-md-5">
                         <div className="p-3 bg-dark rounded-3 border border-secondary h-100 d-flex flex-column justify-content-center">
-                            <small className="text-muted d-block">Delivery Target:</small>
+                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                <small className="text-muted">Delivery Details:</small>
+                                <span className="badge bg-success bg-opacity-25 text-success extra-small fw-semibold">₹{displayAmount}/-</span>
+                            </div>
                             <span className="fw-semibold text-white small text-truncate">
                                 <i className="bi bi-pin-map-fill text-danger me-1"></i> {order?.product_name ? `${order.product_name} (${order.size || 'Standard'})` : 'Customer Address'}
                             </span>
+                            <small className="text-muted extra-small mt-1 text-truncate font-monospace">
+                                Ref: #{displayOrderId}
+                            </small>
                         </div>
                     </div>
                 </div>
