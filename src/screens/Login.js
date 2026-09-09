@@ -221,6 +221,9 @@ export default function Login() {
                 localStorage.setItem("authToken", token);
                 localStorage.setItem("loggedInUserName", userObj.name || "Foodie");
                 localStorage.setItem("userData", JSON.stringify(userObj));
+                if (userObj.email) {
+                    localStorage.setItem("userEmail", userObj.email);
+                }
 
                 window.dispatchEvent(new Event('cartUpdated'));
 

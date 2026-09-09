@@ -35,6 +35,12 @@ const CashfreePaymentForm = () => {
 
     // Pre-load Cashfree SDK on component mount
     useEffect(() => {
+        if (location.state?.cartItems && Array.isArray(location.state.cartItems) && location.state.cartItems.length > 0) {
+            localStorage.setItem("pendingCartItems", JSON.stringify(location.state.cartItems));
+        }
+    }, [location.state]);
+
+    useEffect(() => {
         let isMounted = true;
         const initSdk = async () => {
             try {
@@ -86,10 +92,18 @@ const CashfreePaymentForm = () => {
 
             console.log("Initiating payment request to:", `${baseUrl}/create/cashfree/order`);
 
+            const token = localStorage.getItem("authToken");
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['authorization'] = `Bearer ${token}`;
+            }
+
+            const returnUrl = `${window.location.origin}/payment-success`;
+
             // Step 1: Create Cashfree Order Session on Backend
             const res = await fetch(`${baseUrl}/create/cashfree/order`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify({
                     userId: userId,
                     orderAmount: Number(form.amount) || 250,
@@ -97,7 +111,8 @@ const CashfreePaymentForm = () => {
                     customerId: `cust_mern${Math.floor(100000 + Math.random() * 900000)}`,
                     customerEmail: userEmail,
                     customerPhone: cleanPhone,
-                    orderAddress: cleanAddress
+                    orderAddress: cleanAddress,
+                    returnUrl: returnUrl
                 })
             });
 

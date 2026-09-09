@@ -116,6 +116,9 @@ export default function Navbar() {
                     if (profData.data.name) {
                         localStorage.setItem("loggedInUserName", profData.data.name);
                     }
+                    if (profData.data.email) {
+                        localStorage.setItem("userEmail", profData.data.email);
+                    }
                 }
             }
         } catch (e) {

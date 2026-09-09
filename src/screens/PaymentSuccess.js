@@ -15,20 +15,59 @@ const PaymentSuccess = () => {
         const processOrderCreation = async () => {
             const baseUrl = (process.env.REACT_APP_BASE_URL || 'https://node-js-back-end-food.vercel.app/api').replace(/\/$/, '');
             const token = localStorage.getItem("authToken");
-            const pendingCartItemsStr = localStorage.getItem("pendingCartItems");
 
-            if (pendingCartItemsStr && token) {
+            // Extract email properly
+            let userEmail = localStorage.getItem("userEmail") || "";
+            if (!userEmail) {
                 try {
-                    const cartItems = JSON.parse(pendingCartItemsStr);
+                    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+                    userEmail = userData.email || "";
+                } catch (e) {}
+            }
+
+            // Retrieve pending cart items from localStorage or fallback to backend cart
+            const pendingCartItemsStr = localStorage.getItem("pendingCartItems");
+            let cartItems = [];
+            if (pendingCartItemsStr) {
+                try {
+                    cartItems = JSON.parse(pendingCartItemsStr);
+                } catch (e) {
+                    console.error("Failed to parse pendingCartItems:", e);
+                }
+            }
+
+            if ((!cartItems || cartItems.length === 0) && token) {
+                try {
+                    const cartRes = await fetch(`${baseUrl}/fetch/cart/items`, {
+                        method: 'GET',
+                        headers: {
+                            "authorization": `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    if (cartRes.ok) {
+                        const cartJson = await cartRes.json();
+                        if (cartJson.success && Array.isArray(cartJson.data) && cartJson.data.length > 0) {
+                            cartItems = cartJson.data;
+                        }
+                    }
+                } catch (err) {
+                    console.warn("Fallback cart fetch warning:", err);
+                }
+            }
+
+            if (cartItems && cartItems.length > 0 && token) {
+                try {
                     const names = cartItems.map(i => i.product_name).join(', ');
                     if (isMounted) setCreatedItemNames(names);
 
                     const requestBody = cartItems.map(item => ({
                         userId: item.user_id,
-                        email: item.email || localStorage.getItem("userEmail"),
+                        email: item.email || userEmail || '',
                         name: item.product_name,
-                        qty: item.quantity,
-                        size: item.size
+                        qty: Number(item.quantity) || 1,
+                        size: item.size || 'regular',
+                        total_amount: item.total_amount
                     }));
 
                     const res = await fetch(`${baseUrl}/order/create`, {
@@ -44,14 +83,32 @@ const PaymentSuccess = () => {
                     if (res.ok && json.success && json.data) {
                         const created = Array.isArray(json.data) ? json.data[0] : json.data;
                         if (isMounted) setActiveOrder(created);
-                        localStorage.removeItem("pendingCartItems");
-                        window.dispatchEvent(new Event('cartUpdated'));
                     }
                 } catch (e) {
                     console.error("Order creation on payment success error:", e);
+                } finally {
+                    // Explicitly call clear/cart on backend to guarantee active cart is emptied
+                    try {
+                        await fetch(`${baseUrl}/clear/cart`, {
+                            method: 'DELETE',
+                            headers: {
+                                "authorization": `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            }
+                        });
+                    } catch (clearErr) {
+                        console.warn("Clear cart API warning:", clearErr);
+                    }
+
+                    // Remove pending items and total from localStorage
+                    localStorage.removeItem("pendingCartItems");
+                    localStorage.removeItem("lastCartTotal");
+
+                    // Notify Navbar and other components
+                    window.dispatchEvent(new Event('cartUpdated'));
                 }
             } else if (token) {
-                // Fetch active order if already created
+                // Fetch active order if already created (e.g. on page refresh or previously created)
                 try {
                     const res = await fetch(`${baseUrl}/user/active-order`, {
                         headers: { "authorization": `Bearer ${token}` }
@@ -60,11 +117,28 @@ const PaymentSuccess = () => {
                         const data = await res.json();
                         if (data.success && data.data && isMounted) {
                             setActiveOrder(data.data);
+                            if (data.data.product_name) {
+                                setCreatedItemNames(data.data.product_name);
+                            }
                         }
                     }
                 } catch (e) {
                     console.warn("Active order fetch warning:", e);
                 }
+
+                // Ensure cart state and localStorage are cleared
+                try {
+                    await fetch(`${baseUrl}/clear/cart`, {
+                        method: 'DELETE',
+                        headers: {
+                            "authorization": `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                } catch (e) {}
+                localStorage.removeItem("pendingCartItems");
+                localStorage.removeItem("lastCartTotal");
+                window.dispatchEvent(new Event('cartUpdated'));
             }
             if (isMounted) setLoading(false);
         };

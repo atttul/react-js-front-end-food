@@ -134,6 +134,9 @@ const OtpVerify = () => {
                 localStorage.setItem("loggedInUserName", userName);
                 if (data.data) {
                     localStorage.setItem("userData", JSON.stringify(data.data));
+                    if (data.data.email) {
+                        localStorage.setItem("userEmail", data.data.email);
+                    }
                 }
 
                 window.dispatchEvent(new Event('cartUpdated'));
